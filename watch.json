@@ -1,0 +1,11 @@
+{
+  "restart": {
+    "include": [
+      "\\.elm$",
+      "server.js",
+      ".glitch-assets",
+      "build.js"
+    ]
+  },
+  "throttle": 10000
+}
