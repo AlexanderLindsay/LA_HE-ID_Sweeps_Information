@@ -1,0 +1,32 @@
+{
+  "//1": "describes your app and its dependencies",
+  "//2": "https://docs.npmjs.com/files/package.json",
+  "//3": "updating this file will download and update your packages",
+  "name": "hello-express",
+  "version": "0.0.1",
+  "description": "A simple Node app built on Express, instantly up and running.",
+  "main": "server.js",
+  "scripts": {
+    "prestart": "elm make src/Main.elm --output public/elm.js",
+    "start": "pnpm run prestart && node server.js"
+  },
+  "dependencies": {
+    "express": "^4.16.4",
+    "elm": "0.19.0-no-deps",
+    "pdfjs-dist": "^2.2.228",
+    "moment": "^2.24.0",
+    "moment-timezone": "^0.5.26"
+  },
+  "engines": {
+    "node": "8.x"
+  },
+  "repository": {
+    "url": "https://glitch.com/edit/#!/hello-express"
+  },
+  "license": "MIT",
+  "keywords": [
+    "node",
+    "glitch",
+    "express"
+  ]
+}
