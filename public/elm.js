@@ -7329,6 +7329,8 @@ var author$project$Main$init = function (_n0) {
 		{
 			days: krisajenkins$remotedata$RemoteData$NotAsked,
 			firstDay: elm$core$Maybe$Nothing,
+			nextDay: elm$core$Maybe$Nothing,
+			previousDay: elm$core$Maybe$Nothing,
 			selectedDay: elm$core$Maybe$Nothing,
 			showDayPicker: false,
 			sweeps: krisajenkins$remotedata$RemoteData$NotAsked,
@@ -7355,16 +7357,87 @@ var elm$time$Time$posixToMillis = function (_n0) {
 	var millis = _n0.a;
 	return millis;
 };
-var author$project$Main$getSweeps = function (time) {
-	return elm$http$Http$get(
-		{
-			expect: A2(
-				elm$http$Http$expectJson,
-				A2(elm$core$Basics$composeR, krisajenkins$remotedata$RemoteData$fromResult, author$project$Main$SweepsResponse),
-				author$project$SweepModels$sweepsDecoder),
-			url: '/api/sweeps/' + A3(elm$core$Basics$composeR, elm$time$Time$posixToMillis, elm$core$String$fromInt, time)
-		});
+var author$project$Main$posixToString = function (posix) {
+	return elm$core$String$fromInt(
+		elm$time$Time$posixToMillis(posix));
 };
+var elm$core$Array$fromListHelp = F3(
+	function (list, nodeList, nodeListSize) {
+		fromListHelp:
+		while (true) {
+			var _n0 = A2(elm$core$Elm$JsArray$initializeFromList, elm$core$Array$branchFactor, list);
+			var jsArray = _n0.a;
+			var remainingItems = _n0.b;
+			if (_Utils_cmp(
+				elm$core$Elm$JsArray$length(jsArray),
+				elm$core$Array$branchFactor) < 0) {
+				return A2(
+					elm$core$Array$builderToArray,
+					true,
+					{nodeList: nodeList, nodeListSize: nodeListSize, tail: jsArray});
+			} else {
+				var $temp$list = remainingItems,
+					$temp$nodeList = A2(
+					elm$core$List$cons,
+					elm$core$Array$Leaf(jsArray),
+					nodeList),
+					$temp$nodeListSize = nodeListSize + 1;
+				list = $temp$list;
+				nodeList = $temp$nodeList;
+				nodeListSize = $temp$nodeListSize;
+				continue fromListHelp;
+			}
+		}
+	});
+var elm$core$Array$fromList = function (list) {
+	if (!list.b) {
+		return elm$core$Array$empty;
+	} else {
+		return A3(elm$core$Array$fromListHelp, list, _List_Nil, 0);
+	}
+};
+var elm$core$Bitwise$shiftRightZfBy = _Bitwise_shiftRightZfBy;
+var elm$core$Array$bitMask = 4294967295 >>> (32 - elm$core$Array$shiftStep);
+var elm$core$Bitwise$and = _Bitwise_and;
+var elm$core$Elm$JsArray$unsafeGet = _JsArray_unsafeGet;
+var elm$core$Array$getHelp = F3(
+	function (shift, index, tree) {
+		getHelp:
+		while (true) {
+			var pos = elm$core$Array$bitMask & (index >>> shift);
+			var _n0 = A2(elm$core$Elm$JsArray$unsafeGet, pos, tree);
+			if (_n0.$ === 'SubTree') {
+				var subTree = _n0.a;
+				var $temp$shift = shift - elm$core$Array$shiftStep,
+					$temp$index = index,
+					$temp$tree = subTree;
+				shift = $temp$shift;
+				index = $temp$index;
+				tree = $temp$tree;
+				continue getHelp;
+			} else {
+				var values = _n0.a;
+				return A2(elm$core$Elm$JsArray$unsafeGet, elm$core$Array$bitMask & index, values);
+			}
+		}
+	});
+var elm$core$Bitwise$shiftLeftBy = _Bitwise_shiftLeftBy;
+var elm$core$Array$tailIndex = function (len) {
+	return (len >>> 5) << 5;
+};
+var elm$core$Basics$ge = _Utils_ge;
+var elm$core$Array$get = F2(
+	function (index, _n0) {
+		var len = _n0.a;
+		var startShift = _n0.b;
+		var tree = _n0.c;
+		var tail = _n0.d;
+		return ((index < 0) || (_Utils_cmp(index, len) > -1)) ? elm$core$Maybe$Nothing : ((_Utils_cmp(
+			index,
+			elm$core$Array$tailIndex(len)) > -1) ? elm$core$Maybe$Just(
+			A2(elm$core$Elm$JsArray$unsafeGet, elm$core$Array$bitMask & index, tail)) : elm$core$Maybe$Just(
+			A3(elm$core$Array$getHelp, startShift, index, tree)));
+	});
 var elm$core$List$head = function (list) {
 	if (list.b) {
 		var x = list.a;
@@ -7393,6 +7466,67 @@ var elm$core$Maybe$map = F2(
 			return elm$core$Maybe$Nothing;
 		}
 	});
+var author$project$Main$getPreviousAndNext = F2(
+	function (model, posix) {
+		var _n0 = model.days;
+		if (_n0.$ === 'Success') {
+			var days = _n0.a;
+			var selectedIndex = elm$core$List$head(
+				A2(
+					elm$core$List$map,
+					elm$core$Tuple$first,
+					A2(
+						elm$core$List$filter,
+						function (_n1) {
+							var i = _n1.a;
+							var d = _n1.b;
+							return _Utils_eq(d.id, posix);
+						},
+						A2(
+							elm$core$List$indexedMap,
+							F2(
+								function (i, d) {
+									return _Utils_Tuple2(i, d);
+								}),
+							days))));
+			var daysArray = elm$core$Array$fromList(days);
+			var next = A2(
+				elm$core$Maybe$map,
+				function (d) {
+					return author$project$Main$posixToString(d.id);
+				},
+				A2(
+					elm$core$Maybe$andThen,
+					function (si) {
+						return A2(elm$core$Array$get, si + 1, daysArray);
+					},
+					selectedIndex));
+			var previous = A2(
+				elm$core$Maybe$map,
+				function (d) {
+					return author$project$Main$posixToString(d.id);
+				},
+				A2(
+					elm$core$Maybe$andThen,
+					function (si) {
+						return A2(elm$core$Array$get, si - 1, daysArray);
+					},
+					selectedIndex));
+			return _Utils_Tuple2(previous, next);
+		} else {
+			return _Utils_Tuple2(elm$core$Maybe$Nothing, elm$core$Maybe$Nothing);
+		}
+	});
+var author$project$Main$getSweeps = function (time) {
+	return elm$http$Http$get(
+		{
+			expect: A2(
+				elm$http$Http$expectJson,
+				A2(elm$core$Basics$composeR, krisajenkins$remotedata$RemoteData$fromResult, author$project$Main$SweepsResponse),
+				author$project$SweepModels$sweepsDecoder),
+			url: '/api/sweeps/' + A3(elm$core$Basics$composeR, elm$time$Time$posixToMillis, elm$core$String$fromInt, time)
+		});
+};
 var elm$core$Maybe$withDefault = F2(
 	function (_default, maybe) {
 		if (maybe.$ === 'Just') {
@@ -7403,6 +7537,29 @@ var elm$core$Maybe$withDefault = F2(
 		}
 	});
 var elm$core$Platform$Cmd$none = elm$core$Platform$Cmd$batch(_List_Nil);
+var author$project$Main$getSweepsForDay = function (day) {
+	var newTime = A2(
+		elm$core$Maybe$andThen,
+		function (d) {
+			return A2(
+				elm$core$Maybe$map,
+				function (t) {
+					return elm$time$Time$millisToPosix(t);
+				},
+				elm$core$String$toInt(d));
+		},
+		day);
+	var sweepsCmd = A2(
+		elm$core$Maybe$withDefault,
+		elm$core$Platform$Cmd$none,
+		A2(
+			elm$core$Maybe$map,
+			function (t) {
+				return author$project$Main$getSweeps(t);
+			},
+			newTime));
+	return _Utils_Tuple2(newTime, sweepsCmd);
+};
 var elm$time$Time$now = _Time_now(elm$time$Time$millisToPosix);
 var author$project$Main$update = F2(
 	function (msg, model) {
@@ -7429,31 +7586,61 @@ var author$project$Main$update = F2(
 						return A2(
 							elm$core$Maybe$map,
 							function (d) {
-								return elm$core$String$fromInt(
-									elm$time$Time$posixToMillis(d.id));
+								return author$project$Main$posixToString(d.id);
 							},
 							elm$core$List$head(days));
 					} else {
 						return elm$core$Maybe$Nothing;
 					}
 				}();
+				var _n1 = function () {
+					var _n2 = model.sweeps;
+					if (_n2.$ === 'Success') {
+						var sweep = _n2.a;
+						return A2(author$project$Main$getPreviousAndNext, model, sweep.date);
+					} else {
+						return _Utils_Tuple2(elm$core$Maybe$Nothing, elm$core$Maybe$Nothing);
+					}
+				}();
+				var newPrevious = _n1.a;
+				var newNext = _n1.b;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{days: response, firstDay: first, selectedDay: first}),
+						{days: response, firstDay: first, nextDay: newNext, previousDay: newPrevious, selectedDay: first}),
 					elm$core$Platform$Cmd$none);
 			case 'SweepsResponse':
 				var response = msg.a;
+				var _n4 = function () {
+					if (response.$ === 'Success') {
+						var sweep = response.a;
+						return A2(author$project$Main$getPreviousAndNext, model, sweep.date);
+					} else {
+						return _Utils_Tuple2(elm$core$Maybe$Nothing, elm$core$Maybe$Nothing);
+					}
+				}();
+				var newPrevious = _n4.a;
+				var newNext = _n4.b;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{sweeps: response}),
+						{nextDay: newNext, previousDay: newPrevious, sweeps: response}),
 					elm$core$Platform$Cmd$none);
 			case 'ShowDayPicker':
+				var currentlySelectedDay = function () {
+					var _n6 = model.sweeps;
+					if (_n6.$ === 'Success') {
+						var sweep = _n6.a;
+						return elm$core$Maybe$Just(
+							author$project$Main$posixToString(sweep.date));
+					} else {
+						return model.firstDay;
+					}
+				}();
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{selectedDay: model.firstDay, showDayPicker: true}),
+						{selectedDay: currentlySelectedDay, showDayPicker: true}),
 					elm$core$Platform$Cmd$none);
 			case 'SelectDay':
 				var day = msg.a;
@@ -7470,27 +7657,10 @@ var author$project$Main$update = F2(
 						model,
 						{selectedDay: elm$core$Maybe$Nothing, showDayPicker: false}),
 					elm$core$Platform$Cmd$none);
-			default:
-				var newTime = A2(
-					elm$core$Maybe$andThen,
-					function (d) {
-						return A2(
-							elm$core$Maybe$map,
-							function (t) {
-								return elm$time$Time$millisToPosix(t);
-							},
-							elm$core$String$toInt(d));
-					},
-					model.selectedDay);
-				var sweepsCmd = A2(
-					elm$core$Maybe$withDefault,
-					elm$core$Platform$Cmd$none,
-					A2(
-						elm$core$Maybe$map,
-						function (t) {
-							return author$project$Main$getSweeps(t);
-						},
-						newTime));
+			case 'ChangeDay':
+				var _n7 = author$project$Main$getSweepsForDay(model.selectedDay);
+				var newTime = _n7.a;
+				var sweepsCmd = _n7.b;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
@@ -7500,14 +7670,101 @@ var author$project$Main$update = F2(
 							time: A2(elm$core$Maybe$withDefault, model.time, newTime)
 						}),
 					sweepsCmd);
+			case 'GoToPreviousDay':
+				var _n8 = author$project$Main$getSweepsForDay(model.previousDay);
+				var newTime = _n8.a;
+				var sweepsCmd = _n8.b;
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{
+							time: A2(elm$core$Maybe$withDefault, model.time, newTime)
+						}),
+					sweepsCmd);
+			default:
+				var _n9 = author$project$Main$getSweepsForDay(model.nextDay);
+				var newTime = _n9.a;
+				var sweepsCmd = _n9.b;
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{
+							time: A2(elm$core$Maybe$withDefault, model.time, newTime)
+						}),
+					sweepsCmd);
 		}
 	});
 var author$project$Main$CancelChangeDay = {$: 'CancelChangeDay'};
 var author$project$Main$ChangeDay = {$: 'ChangeDay'};
+var author$project$Main$GoToNextDay = {$: 'GoToNextDay'};
+var author$project$Main$GoToPreviousDay = {$: 'GoToPreviousDay'};
 var author$project$Main$SelectDay = function (a) {
 	return {$: 'SelectDay', a: a};
 };
 var author$project$Main$ShowDayPicker = {$: 'ShowDayPicker'};
+var elm$virtual_dom$VirtualDom$toHandlerInt = function (handler) {
+	switch (handler.$) {
+		case 'Normal':
+			return 0;
+		case 'MayStopPropagation':
+			return 1;
+		case 'MayPreventDefault':
+			return 2;
+		default:
+			return 3;
+	}
+};
+var elm$html$Html$button = _VirtualDom_node('button');
+var elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
+var elm$html$Html$text = elm$virtual_dom$VirtualDom$text;
+var elm$json$Json$Encode$bool = _Json_wrap;
+var elm$html$Html$Attributes$boolProperty = F2(
+	function (key, bool) {
+		return A2(
+			_VirtualDom_property,
+			key,
+			elm$json$Json$Encode$bool(bool));
+	});
+var elm$html$Html$Attributes$disabled = elm$html$Html$Attributes$boolProperty('disabled');
+var elm$virtual_dom$VirtualDom$Normal = function (a) {
+	return {$: 'Normal', a: a};
+};
+var elm$virtual_dom$VirtualDom$on = _VirtualDom_on;
+var elm$html$Html$Events$on = F2(
+	function (event, decoder) {
+		return A2(
+			elm$virtual_dom$VirtualDom$on,
+			event,
+			elm$virtual_dom$VirtualDom$Normal(decoder));
+	});
+var elm$html$Html$Events$onClick = function (msg) {
+	return A2(
+		elm$html$Html$Events$on,
+		'click',
+		elm$json$Json$Decode$succeed(msg));
+};
+var author$project$Main$viewDayButton = F3(
+	function (label, msg, value) {
+		var isDisabled = function () {
+			if (value.$ === 'Just') {
+				var v = value.a;
+				return false;
+			} else {
+				return true;
+			}
+		}();
+		return A2(
+			elm$html$Html$button,
+			_List_fromArray(
+				[
+					elm$html$Html$Events$onClick(msg),
+					elm$html$Html$Attributes$disabled(isDisabled)
+				]),
+			_List_fromArray(
+				[
+					elm$html$Html$text(label)
+				]));
+	});
 var author$project$Main$toTextMonth = function (month) {
 	switch (month.$) {
 		case 'Jan':
@@ -7558,7 +7815,6 @@ var elm$core$String$cons = _String_cons;
 var elm$core$String$fromChar = function (_char) {
 	return A2(elm$core$String$cons, _char, '');
 };
-var elm$core$Bitwise$and = _Bitwise_and;
 var elm$core$Bitwise$shiftRightBy = _Bitwise_shiftRightBy;
 var elm$core$String$repeatHelp = F3(
 	function (n, chunk, result) {
@@ -7621,7 +7877,6 @@ var elm$time$Time$toAdjustedMinutes = F2(
 				60000),
 			eras);
 	});
-var elm$core$Basics$ge = _Utils_ge;
 var elm$time$Time$toCivil = function (minutes) {
 	var rawDay = A2(elm$time$Time$flooredDiv, minutes, 60 * 24) + 719468;
 	var era = (((rawDay >= 0) ? rawDay : (rawDay - 146096)) / 146097) | 0;
@@ -7723,7 +7978,7 @@ var elm$time$Time$toYear = F2(
 		return elm$time$Time$toCivil(
 			A2(elm$time$Time$toAdjustedMinutes, zone, time)).year;
 	});
-var author$project$Main$viewTime = F2(
+var author$project$Main$viewHeaderTime = F2(
 	function (time, zone) {
 		var year = elm$core$String$fromInt(
 			A2(elm$time$Time$toYear, zone, time));
@@ -7739,25 +7994,56 @@ var author$project$Main$viewTime = F2(
 				A2(elm$time$Time$toDay, zone, time)));
 		return weekDay + (', ' + (month + (' ' + (day + (' ' + year)))));
 	});
-var elm$virtual_dom$VirtualDom$toHandlerInt = function (handler) {
-	switch (handler.$) {
-		case 'Normal':
-			return 0;
-		case 'MayStopPropagation':
-			return 1;
-		case 'MayPreventDefault':
-			return 2;
+var author$project$Main$toIntegerMonth = function (month) {
+	switch (month.$) {
+		case 'Jan':
+			return '01';
+		case 'Feb':
+			return '02';
+		case 'Mar':
+			return '03';
+		case 'Apr':
+			return '04';
+		case 'May':
+			return '05';
+		case 'Jun':
+			return '06';
+		case 'Jul':
+			return '07';
+		case 'Aug':
+			return '08';
+		case 'Sep':
+			return '09';
+		case 'Oct':
+			return '10';
+		case 'Nov':
+			return '11';
 		default:
-			return 3;
+			return '12';
 	}
 };
-var elm$html$Html$button = _VirtualDom_node('button');
+var author$project$Main$viewTime = F2(
+	function (time, zone) {
+		var year = elm$core$String$fromInt(
+			A2(elm$time$Time$toYear, zone, time));
+		var weekDay = author$project$Main$toWeekDay(
+			A2(elm$time$Time$toWeekday, zone, time));
+		var month = author$project$Main$toIntegerMonth(
+			A2(elm$time$Time$toMonth, zone, time));
+		var day = A3(
+			elm$core$String$padLeft,
+			2,
+			_Utils_chr('0'),
+			elm$core$String$fromInt(
+				A2(elm$time$Time$toDay, zone, time)));
+		return year + ('-' + (month + ('-' + (day + (' ' + weekDay)))));
+	});
+var elm$core$List$sortBy = _List_sortBy;
 var elm$html$Html$h1 = _VirtualDom_node('h1');
 var elm$html$Html$option = _VirtualDom_node('option');
 var elm$html$Html$select = _VirtualDom_node('select');
 var elm$html$Html$span = _VirtualDom_node('span');
-var elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
-var elm$html$Html$text = elm$virtual_dom$VirtualDom$text;
+var elm$html$Html$Attributes$selected = elm$html$Html$Attributes$boolProperty('selected');
 var elm$json$Json$Encode$string = _Json_wrap;
 var elm$html$Html$Attributes$stringProperty = F2(
 	function (key, string) {
@@ -7767,23 +8053,6 @@ var elm$html$Html$Attributes$stringProperty = F2(
 			elm$json$Json$Encode$string(string));
 	});
 var elm$html$Html$Attributes$value = elm$html$Html$Attributes$stringProperty('value');
-var elm$virtual_dom$VirtualDom$Normal = function (a) {
-	return {$: 'Normal', a: a};
-};
-var elm$virtual_dom$VirtualDom$on = _VirtualDom_on;
-var elm$html$Html$Events$on = F2(
-	function (event, decoder) {
-		return A2(
-			elm$virtual_dom$VirtualDom$on,
-			event,
-			elm$virtual_dom$VirtualDom$Normal(decoder));
-	});
-var elm$html$Html$Events$onClick = function (msg) {
-	return A2(
-		elm$html$Html$Events$on,
-		'click',
-		elm$json$Json$Decode$succeed(msg));
-};
 var elm$html$Html$Events$alwaysStop = function (x) {
 	return _Utils_Tuple2(x, true);
 };
@@ -7825,6 +8094,7 @@ var author$project$Main$viewDatePicker = F2(
 				if (!_n0) {
 					return _List_fromArray(
 						[
+							A3(author$project$Main$viewDayButton, 'Previous Day', author$project$Main$GoToPreviousDay, model.previousDay),
 							A2(
 							elm$html$Html$span,
 							_List_Nil,
@@ -7833,7 +8103,7 @@ var author$project$Main$viewDatePicker = F2(
 									elm$html$Html$text('Sweeps for ')
 								])),
 							elm$html$Html$text(
-							A2(author$project$Main$viewTime, date, model.zone)),
+							A2(author$project$Main$viewHeaderTime, date, model.zone)),
 							function () {
 							var _n1 = model.days;
 							if (_n1.$ === 'Success') {
@@ -7850,7 +8120,8 @@ var author$project$Main$viewDatePicker = F2(
 							} else {
 								return elm$html$Html$text('');
 							}
-						}()
+						}(),
+							A3(author$project$Main$viewDayButton, 'Next Day', author$project$Main$GoToNextDay, model.nextDay)
 						]);
 				} else {
 					return _List_fromArray(
@@ -7868,13 +8139,16 @@ var author$project$Main$viewDatePicker = F2(
 									return A2(
 										elm$core$List$map,
 										function (d) {
+											var idString = author$project$Main$posixToString(d.id);
+											var isSelected = _Utils_eq(
+												idString,
+												A2(elm$core$Maybe$withDefault, '', model.selectedDay));
 											return A2(
 												elm$html$Html$option,
 												_List_fromArray(
 													[
-														elm$html$Html$Attributes$value(
-														elm$core$String$fromInt(
-															elm$time$Time$posixToMillis(d.id)))
+														elm$html$Html$Attributes$value(idString),
+														elm$html$Html$Attributes$selected(isSelected)
 													]),
 												_List_fromArray(
 													[
@@ -7882,7 +8156,12 @@ var author$project$Main$viewDatePicker = F2(
 														A2(author$project$Main$viewTime, d.id, model.zone))
 													]));
 										},
-										days);
+										A2(
+											elm$core$List$sortBy,
+											function (d) {
+												return elm$time$Time$posixToMillis(d.id);
+											},
+											days));
 								} else {
 									return _List_Nil;
 								}
@@ -7972,6 +8251,7 @@ var author$project$SweepModels$locationToStr = function (location) {
 			return l;
 	}
 };
+var elm$html$Html$div = _VirtualDom_node('div');
 var elm$html$Html$td = _VirtualDom_node('td');
 var elm$html$Html$tr = _VirtualDom_node('tr');
 var author$project$Main$viewActivity = function (activity) {
@@ -8018,7 +8298,13 @@ var author$project$Main$viewActivity = function (activity) {
 						[
 							elm$html$Html$text('Illegal Dump')
 						])),
-					A2(elm$html$Html$td, _List_Nil, _List_Nil)
+					A2(
+					elm$html$Html$td,
+					_List_Nil,
+					_List_fromArray(
+						[
+							elm$html$Html$text(ma.comments)
+						]))
 				]));
 	} else {
 		var da = activity.a;
@@ -8032,7 +8318,34 @@ var author$project$Main$viewActivity = function (activity) {
 					_List_Nil,
 					_List_fromArray(
 						[
-							elm$html$Html$text(da.address + (' with cross streets ' + (da.crossStreetOne + (' and ' + da.crossStreetTwo))))
+							A2(
+							elm$html$Html$div,
+							_List_Nil,
+							_List_fromArray(
+								[
+									elm$html$Html$text(da.address)
+								])),
+							A2(
+							elm$html$Html$div,
+							_List_Nil,
+							_List_fromArray(
+								[
+									elm$html$Html$text('with cross streets:')
+								])),
+							A2(
+							elm$html$Html$div,
+							_List_Nil,
+							_List_fromArray(
+								[
+									elm$html$Html$text(da.crossStreetOne)
+								])),
+							A2(
+							elm$html$Html$div,
+							_List_Nil,
+							_List_fromArray(
+								[
+									elm$html$Html$text(da.crossStreetTwo)
+								]))
 						])),
 					A2(
 					elm$html$Html$td,
@@ -8074,7 +8387,6 @@ var author$project$Main$viewActivity = function (activity) {
 	}
 };
 var elm$html$Html$a = _VirtualDom_node('a');
-var elm$html$Html$div = _VirtualDom_node('div');
 var elm$html$Html$p = _VirtualDom_node('p');
 var elm$html$Html$table = _VirtualDom_node('table');
 var elm$html$Html$tbody = _VirtualDom_node('tbody');

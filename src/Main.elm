@@ -4,6 +4,7 @@ import Browser
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import Array
 import Task
 import Http
 import RemoteData
@@ -19,6 +20,8 @@ type alias Model =
   , days: RemoteData.WebData (List DM.Day)
   , firstDay: Maybe String
   , selectedDay: Maybe String
+  , previousDay: Maybe String
+  , nextDay: Maybe String
   , showDayPicker: Bool
   , sweeps: RemoteData.WebData SM.Sweeps
   }
@@ -30,6 +33,8 @@ type Msg
   | SweepsResponse (RemoteData.WebData SM.Sweeps)
   | ShowDayPicker
   | SelectDay String
+  | GoToPreviousDay
+  | GoToNextDay
   | ChangeDay
   | CancelChangeDay
 
@@ -61,6 +66,8 @@ init _ =
     , days = RemoteData.NotAsked
     , firstDay = Nothing
     , selectedDay = Nothing
+    , previousDay = Nothing
+    , nextDay = Nothing
     , showDayPicker = False
     , sweeps = RemoteData.NotAsked
     }
@@ -70,6 +77,68 @@ init _ =
     , getTodaysSweeps
     ]
   )
+
+posixToString posix =
+  posix
+  |> Time.posixToMillis
+  |> String.fromInt
+
+getSweepsForDay day =
+  let
+      newTime = 
+        day
+        |> Maybe.andThen (\d ->
+          d
+          |> String.toInt
+          |> Maybe.map (\t ->
+            Time.millisToPosix t
+          )
+        )
+      sweepsCmd =
+        newTime
+        |> Maybe.map (\t -> getSweeps t)
+        |> Maybe.withDefault Cmd.none
+    in
+    (newTime, sweepsCmd)
+
+getPreviousAndNext model posix =
+  case model.days of
+    RemoteData.Success days ->
+      let 
+        selectedIndex =
+          days
+          |> List.indexedMap (\i d -> (i,d))
+          |> List.filter (\(i, d) -> 
+            d.id == posix
+          )
+          |> List.map Tuple.first
+          |> List.head
+        daysArray =
+          days
+          |> Array.fromList
+        previous =
+          selectedIndex
+          |> Maybe.andThen (\si ->
+            daysArray
+            |> Array.get (si - 1)
+          )
+          |> Maybe.map (\d ->
+              d.id
+              |> posixToString
+            )
+        next =
+          selectedIndex
+          |> Maybe.andThen (\si ->
+            daysArray
+            |> Array.get (si + 1)
+          )
+          |> Maybe.map (\d ->
+              d.id
+              |> posixToString
+            )
+      in
+        (previous, next)
+    _ -> (Nothing, Nothing)
 
 update msg model =
   case msg of
@@ -90,21 +159,41 @@ update msg model =
           |> List.head
           |> Maybe.map (\d ->
             d.id
-            |> Time.posixToMillis
-            |> String.fromInt
+            |> posixToString
           )
         _ -> Nothing
-        
+      (newPrevious, newNext) =
+        case model.sweeps of
+        RemoteData.Success sweep ->
+          getPreviousAndNext model sweep.date
+        _ -> (Nothing, Nothing)
     in
-    ( { model | days = response, selectedDay = first, firstDay = first }
+    ( { model | days = response, selectedDay = first, firstDay = first, previousDay = newPrevious, nextDay = newNext }
     , Cmd.none
     )
   SweepsResponse response ->
-    ( { model | sweeps = response }
+    let
+      (newPrevious, newNext) =
+        case response of
+        RemoteData.Success sweep ->
+          getPreviousAndNext model sweep.date
+        _ -> (Nothing, Nothing)
+    in
+    ( { model | sweeps = response, previousDay = newPrevious, nextDay = newNext }
     , Cmd.none
     )
   ShowDayPicker ->
-    ( { model | showDayPicker = True, selectedDay = model.firstDay }
+    let
+      currentlySelectedDay = 
+        case model.sweeps of
+        RemoteData.Success sweep ->
+          sweep.date
+          |> posixToString
+          |> Just
+        _ ->
+          model.firstDay
+    in
+    ( { model | showDayPicker = True, selectedDay = currentlySelectedDay }
     , Cmd.none
     )
   SelectDay day ->
@@ -117,23 +206,26 @@ update msg model =
     )
   ChangeDay ->
     let
-      newTime = 
-        model.selectedDay
-        |> Maybe.andThen (\d ->
-          d
-          |> String.toInt
-          |> Maybe.map (\t ->
-            Time.millisToPosix t
-          )
-        )
-      sweepsCmd =
-        newTime
-        |> Maybe.map (\t -> getSweeps t)
-        |> Maybe.withDefault Cmd.none
+      (newTime, sweepsCmd) = 
+        getSweepsForDay model.selectedDay
     in
     ( { model | showDayPicker = False, selectedDay = Nothing, time = Maybe.withDefault model.time newTime }
     , sweepsCmd
     )
+  GoToPreviousDay ->
+    let
+      (newTime, sweepsCmd) =
+        getSweepsForDay model.previousDay
+    in
+    ( { model | time = Maybe.withDefault model.time newTime }
+    , sweepsCmd)
+  GoToNextDay ->
+    let
+      (newTime, sweepsCmd) =
+        getSweepsForDay model.nextDay
+    in
+    ( { model | time = Maybe.withDefault model.time newTime }
+    , sweepsCmd)
 
 toIntegerMonth month =
   case month of
@@ -177,6 +269,24 @@ toWeekDay weekday =
 
 viewTime time zone =
   let
+    day =
+      Time.toDay zone time
+      |> String.fromInt
+      |> String.padLeft 2 '0'
+    weekDay =
+      Time.toWeekday zone time
+      |> toWeekDay
+    month =
+      Time.toMonth zone time
+      |> toIntegerMonth
+    year =
+      Time.toYear zone time
+      |> String.fromInt
+  in
+  year ++ "-" ++ month ++ "-" ++ day ++ " " ++ weekDay
+
+viewHeaderTime time zone =
+  let
     weekDay =
       Time.toWeekday zone time
       |> toWeekDay
@@ -201,34 +311,60 @@ viewActivity activity =
         td [] [ text <| Maybe.withDefault "" <| Maybe.map SM.divisionToStr ma.division ],
         td [] [ text <| Maybe.withDefault "" <| Maybe.map SM.locationToStr ma.location ],
         td [] [ text "Illegal Dump" ],
-        td [] [ ]
+        td [] [ text ma.comments ]
       ]
     SM.Division da ->
       tr [] [
-        td [] [ text <| da.address ++ " with cross streets " ++ da.crossStreetOne ++ " and " ++ da.crossStreetTwo ],
+        td [] 
+          [ div [] [ text <| da.address ]
+          , div [] [ text "with cross streets:" ]
+          , div [] [ text da.crossStreetOne ]
+          , div [] [ text da.crossStreetTwo ]
+          ],
         td [] [ text <| Maybe.withDefault "" <| Maybe.map SM.divisionToStr da.division ],
         td [] [ text <| Maybe.withDefault "" <| Maybe.map SM.locationToStr da.location ],
         td [] [ text "Sweep" ],
         td [] [ text da.comments ]
       ]
 
+viewDayButton label msg value =
+  let
+    isDisabled =
+      case value of
+      Just v -> False
+      Nothing -> True
+  in
+  button [ onClick msg, disabled isDisabled ] [ text label ]
+
 viewDatePicker model date =
   h1 [] (
     case model.showDayPicker of
     False ->
-      [ span [] [ text "Sweeps for " ]
-      , text <| viewTime date model.zone
+      [ viewDayButton "Previous Day" GoToPreviousDay model.previousDay
+      , span [] [ text "Sweeps for " ]
+      , text <| viewHeaderTime date model.zone
       , (case model.days of
         RemoteData.Success _ -> button [ onClick ShowDayPicker ] [ text "Change Date" ]
         _ -> text ""
       )
+      , viewDayButton "Next Day" GoToNextDay model.nextDay
       ]
     True ->
       [ select [ onInput SelectDay ] 
         (case model.days of
           RemoteData.Success days ->
             days
-            |> List.map (\d -> option [ value <| String.fromInt <| Time.posixToMillis d.id ] [ text <| viewTime d.id model.zone ])
+            |> List.sortBy (\d -> Time.posixToMillis d.id )
+            |> List.map (\d ->
+              let
+                idString = 
+                  d.id
+                  |> posixToString
+                isSelected =
+                  idString == Maybe.withDefault "" model.selectedDay
+              in
+              option [ value idString, selected isSelected ] [ text <| viewTime d.id model.zone ]
+              )
           _ -> []
         )
       , button [ onClick ChangeDay ] [ text "Accept" ]
