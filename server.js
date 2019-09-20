@@ -25,37 +25,29 @@ app.get('/api/days', function(request, response) {
         .filter(f => f !== 'lastChanged.txt')
         .map(f => {
         const parts = f.split('.');
-        return { id: +parts[0] };
+        const date = parts[0];
+        return { id: moment.tz(date, 'YYYY-MM-DD', 'America/Los_Angeles').valueOf() };
       });
     
     response.json(dates);
   });
 });
 
-app.get('/api/sweeps/today', function(request, response) {
-  const requestedDate = moment.tz('America/Los_Angeles');
-  const dateId = requestedDate.startOf('date').hours(8).minute(30).utcOffset(0, true).valueOf();
-  const path = `data/${dateId}.json`;
-  
-  if(fs.existsSync(path)) {  
-    const readable = fs.createReadStream(path);
-    response.setHeader('Content-Type', 'application/json');
-    readable.pipe(response);
-  } else {
-    response.status(404).send('Not Found');
-  }
-});
-
 app.get('/api/sweeps/:date', function(request, response) {
-  const requestedDate = moment(+request.params.date);
-  const path = 'data/' + requestedDate.valueOf() + '.json';
+  const checker = /\d{4}-\d{2}-\d{2}/;
+  const date = request.params.date;
+  if(!checker.test(date)) {
+    response.status(400).send('Invalid request, date must be in the YYYY-MM-DD format');
+  }
+  const path = 'data/' + date + '.json';
   
   if(fs.existsSync(path)) {  
     const readable = fs.createReadStream(path);
     response.setHeader('Content-Type', 'application/json');
     readable.pipe(response);
   } else {
-    response.status(404).send('Not Found');
+    const isoDate = moment.tz(date, 'YYYY-MM-DD', 'America/Los_Angeles').toISOString();
+    response.json({ date: isoDate, activities: [], url: '', name: '' });
   }
 });
 
