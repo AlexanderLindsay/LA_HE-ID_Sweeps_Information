@@ -2489,89 +2489,6 @@ function _Http_track(router, xhr, tracker)
 }
 
 
-function _Time_now(millisToPosix)
-{
-	return _Scheduler_binding(function(callback)
-	{
-		callback(_Scheduler_succeed(millisToPosix(Date.now())));
-	});
-}
-
-var _Time_setInterval = F2(function(interval, task)
-{
-	return _Scheduler_binding(function(callback)
-	{
-		var id = setInterval(function() { _Scheduler_rawSpawn(task); }, interval);
-		return function() { clearInterval(id); };
-	});
-});
-
-function _Time_here()
-{
-	return _Scheduler_binding(function(callback)
-	{
-		callback(_Scheduler_succeed(
-			A2(elm$time$Time$customZone, -(new Date().getTimezoneOffset()), _List_Nil)
-		));
-	});
-}
-
-
-function _Time_getZoneName()
-{
-	return _Scheduler_binding(function(callback)
-	{
-		try
-		{
-			var name = elm$time$Time$Name(Intl.DateTimeFormat().resolvedOptions().timeZone);
-		}
-		catch (e)
-		{
-			var name = elm$time$Time$Offset(new Date().getTimezoneOffset());
-		}
-		callback(_Scheduler_succeed(name));
-	});
-}
-
-
-
-var _Bitwise_and = F2(function(a, b)
-{
-	return a & b;
-});
-
-var _Bitwise_or = F2(function(a, b)
-{
-	return a | b;
-});
-
-var _Bitwise_xor = F2(function(a, b)
-{
-	return a ^ b;
-});
-
-function _Bitwise_complement(a)
-{
-	return ~a;
-};
-
-var _Bitwise_shiftLeftBy = F2(function(offset, a)
-{
-	return a << offset;
-});
-
-var _Bitwise_shiftRightBy = F2(function(offset, a)
-{
-	return a >> offset;
-});
-
-var _Bitwise_shiftRightZfBy = F2(function(offset, a)
-{
-	return a >>> offset;
-});
-
-
-
 
 // STRINGS
 
@@ -2698,6 +2615,89 @@ var _Parser_findSubString = F5(function(smallString, offset, row, col, bigString
 	}
 
 	return _Utils_Tuple3(newOffset, row, col);
+});
+
+
+
+function _Time_now(millisToPosix)
+{
+	return _Scheduler_binding(function(callback)
+	{
+		callback(_Scheduler_succeed(millisToPosix(Date.now())));
+	});
+}
+
+var _Time_setInterval = F2(function(interval, task)
+{
+	return _Scheduler_binding(function(callback)
+	{
+		var id = setInterval(function() { _Scheduler_rawSpawn(task); }, interval);
+		return function() { clearInterval(id); };
+	});
+});
+
+function _Time_here()
+{
+	return _Scheduler_binding(function(callback)
+	{
+		callback(_Scheduler_succeed(
+			A2(elm$time$Time$customZone, -(new Date().getTimezoneOffset()), _List_Nil)
+		));
+	});
+}
+
+
+function _Time_getZoneName()
+{
+	return _Scheduler_binding(function(callback)
+	{
+		try
+		{
+			var name = elm$time$Time$Name(Intl.DateTimeFormat().resolvedOptions().timeZone);
+		}
+		catch (e)
+		{
+			var name = elm$time$Time$Offset(new Date().getTimezoneOffset());
+		}
+		callback(_Scheduler_succeed(name));
+	});
+}
+
+
+
+var _Bitwise_and = F2(function(a, b)
+{
+	return a & b;
+});
+
+var _Bitwise_or = F2(function(a, b)
+{
+	return a | b;
+});
+
+var _Bitwise_xor = F2(function(a, b)
+{
+	return a ^ b;
+});
+
+function _Bitwise_complement(a)
+{
+	return ~a;
+};
+
+var _Bitwise_shiftLeftBy = F2(function(offset, a)
+{
+	return a << offset;
+});
+
+var _Bitwise_shiftRightBy = F2(function(offset, a)
+{
+	return a >> offset;
+});
+
+var _Bitwise_shiftRightZfBy = F2(function(offset, a)
+{
+	return a >>> offset;
 });
 
 
@@ -6116,304 +6116,9 @@ var author$project$Main$getDays = elm$http$Http$get(
 			elm$json$Json$Decode$list(author$project$DayModels$dayDecoder)),
 		url: '/api/days'
 	});
-var elm$core$Platform$Cmd$batch = _Platform_batch;
-var elm$core$Task$Perform = function (a) {
-	return {$: 'Perform', a: a};
-};
-var elm$core$Task$init = elm$core$Task$succeed(_Utils_Tuple0);
-var elm$core$List$map = F2(
-	function (f, xs) {
-		return A3(
-			elm$core$List$foldr,
-			F2(
-				function (x, acc) {
-					return A2(
-						elm$core$List$cons,
-						f(x),
-						acc);
-				}),
-			_List_Nil,
-			xs);
-	});
-var elm$core$Task$map = F2(
-	function (func, taskA) {
-		return A2(
-			elm$core$Task$andThen,
-			function (a) {
-				return elm$core$Task$succeed(
-					func(a));
-			},
-			taskA);
-	});
-var elm$core$Task$spawnCmd = F2(
-	function (router, _n0) {
-		var task = _n0.a;
-		return _Scheduler_spawn(
-			A2(
-				elm$core$Task$andThen,
-				elm$core$Platform$sendToApp(router),
-				task));
-	});
-var elm$core$Task$onEffects = F3(
-	function (router, commands, state) {
-		return A2(
-			elm$core$Task$map,
-			function (_n0) {
-				return _Utils_Tuple0;
-			},
-			elm$core$Task$sequence(
-				A2(
-					elm$core$List$map,
-					elm$core$Task$spawnCmd(router),
-					commands)));
-	});
-var elm$core$Task$onSelfMsg = F3(
-	function (_n0, _n1, _n2) {
-		return elm$core$Task$succeed(_Utils_Tuple0);
-	});
-var elm$core$Task$cmdMap = F2(
-	function (tagger, _n0) {
-		var task = _n0.a;
-		return elm$core$Task$Perform(
-			A2(elm$core$Task$map, tagger, task));
-	});
-_Platform_effectManagers['Task'] = _Platform_createManager(elm$core$Task$init, elm$core$Task$onEffects, elm$core$Task$onSelfMsg, elm$core$Task$cmdMap);
-var elm$core$Task$command = _Platform_leaf('Task');
-var elm$core$Task$perform = F2(
-	function (toMessage, task) {
-		return elm$core$Task$command(
-			elm$core$Task$Perform(
-				A2(elm$core$Task$map, toMessage, task)));
-	});
-var elm$time$Time$Name = function (a) {
-	return {$: 'Name', a: a};
-};
-var elm$time$Time$Offset = function (a) {
-	return {$: 'Offset', a: a};
-};
-var elm$time$Time$Zone = F2(
-	function (a, b) {
-		return {$: 'Zone', a: a, b: b};
-	});
-var elm$time$Time$customZone = elm$time$Time$Zone;
-var elm$time$Time$here = _Time_here(_Utils_Tuple0);
-var elm$time$Time$utc = A2(elm$time$Time$Zone, 0, _List_Nil);
-var krisajenkins$remotedata$RemoteData$NotAsked = {$: 'NotAsked'};
-var author$project$Main$init = function (_n0) {
-	return _Utils_Tuple2(
-		{
-			days: krisajenkins$remotedata$RemoteData$NotAsked,
-			firstDay: elm$core$Maybe$Nothing,
-			selectedDay: elm$core$Maybe$Nothing,
-			showDayPicker: false,
-			sweeps: krisajenkins$remotedata$RemoteData$NotAsked,
-			time: elm$time$Time$millisToPosix(0),
-			zone: elm$time$Time$utc
-		},
-		elm$core$Platform$Cmd$batch(
-			_List_fromArray(
-				[
-					A2(elm$core$Task$perform, author$project$Main$SetTimeZone, elm$time$Time$here),
-					author$project$Main$getDays
-				])));
-};
-var elm$core$Platform$Sub$batch = _Platform_batch;
-var elm$core$Platform$Sub$none = elm$core$Platform$Sub$batch(_List_Nil);
-var author$project$Main$subscriptions = function (model) {
-	return elm$core$Platform$Sub$none;
-};
-var author$project$Main$SetTime = function (a) {
-	return {$: 'SetTime', a: a};
-};
 var author$project$Main$SweepsResponse = function (a) {
 	return {$: 'SweepsResponse', a: a};
 };
-var author$project$Main$toIntegerMonth = function (month) {
-	switch (month.$) {
-		case 'Jan':
-			return '01';
-		case 'Feb':
-			return '02';
-		case 'Mar':
-			return '03';
-		case 'Apr':
-			return '04';
-		case 'May':
-			return '05';
-		case 'Jun':
-			return '06';
-		case 'Jul':
-			return '07';
-		case 'Aug':
-			return '08';
-		case 'Sep':
-			return '09';
-		case 'Oct':
-			return '10';
-		case 'Nov':
-			return '11';
-		default:
-			return '12';
-	}
-};
-var elm$core$String$cons = _String_cons;
-var elm$core$String$fromChar = function (_char) {
-	return A2(elm$core$String$cons, _char, '');
-};
-var elm$core$String$length = _String_length;
-var elm$core$Bitwise$and = _Bitwise_and;
-var elm$core$Bitwise$shiftRightBy = _Bitwise_shiftRightBy;
-var elm$core$String$repeatHelp = F3(
-	function (n, chunk, result) {
-		return (n <= 0) ? result : A3(
-			elm$core$String$repeatHelp,
-			n >> 1,
-			_Utils_ap(chunk, chunk),
-			(!(n & 1)) ? result : _Utils_ap(result, chunk));
-	});
-var elm$core$String$repeat = F2(
-	function (n, chunk) {
-		return A3(elm$core$String$repeatHelp, n, chunk, '');
-	});
-var elm$core$String$padLeft = F3(
-	function (n, _char, string) {
-		return _Utils_ap(
-			A2(
-				elm$core$String$repeat,
-				n - elm$core$String$length(string),
-				elm$core$String$fromChar(_char)),
-			string);
-	});
-var elm$time$Time$flooredDiv = F2(
-	function (numerator, denominator) {
-		return elm$core$Basics$floor(numerator / denominator);
-	});
-var elm$time$Time$posixToMillis = function (_n0) {
-	var millis = _n0.a;
-	return millis;
-};
-var elm$time$Time$toAdjustedMinutesHelp = F3(
-	function (defaultOffset, posixMinutes, eras) {
-		toAdjustedMinutesHelp:
-		while (true) {
-			if (!eras.b) {
-				return posixMinutes + defaultOffset;
-			} else {
-				var era = eras.a;
-				var olderEras = eras.b;
-				if (_Utils_cmp(era.start, posixMinutes) < 0) {
-					return posixMinutes + era.offset;
-				} else {
-					var $temp$defaultOffset = defaultOffset,
-						$temp$posixMinutes = posixMinutes,
-						$temp$eras = olderEras;
-					defaultOffset = $temp$defaultOffset;
-					posixMinutes = $temp$posixMinutes;
-					eras = $temp$eras;
-					continue toAdjustedMinutesHelp;
-				}
-			}
-		}
-	});
-var elm$time$Time$toAdjustedMinutes = F2(
-	function (_n0, time) {
-		var defaultOffset = _n0.a;
-		var eras = _n0.b;
-		return A3(
-			elm$time$Time$toAdjustedMinutesHelp,
-			defaultOffset,
-			A2(
-				elm$time$Time$flooredDiv,
-				elm$time$Time$posixToMillis(time),
-				60000),
-			eras);
-	});
-var elm$core$Basics$ge = _Utils_ge;
-var elm$core$Basics$negate = function (n) {
-	return -n;
-};
-var elm$time$Time$toCivil = function (minutes) {
-	var rawDay = A2(elm$time$Time$flooredDiv, minutes, 60 * 24) + 719468;
-	var era = (((rawDay >= 0) ? rawDay : (rawDay - 146096)) / 146097) | 0;
-	var dayOfEra = rawDay - (era * 146097);
-	var yearOfEra = ((((dayOfEra - ((dayOfEra / 1460) | 0)) + ((dayOfEra / 36524) | 0)) - ((dayOfEra / 146096) | 0)) / 365) | 0;
-	var dayOfYear = dayOfEra - (((365 * yearOfEra) + ((yearOfEra / 4) | 0)) - ((yearOfEra / 100) | 0));
-	var mp = (((5 * dayOfYear) + 2) / 153) | 0;
-	var month = mp + ((mp < 10) ? 3 : (-9));
-	var year = yearOfEra + (era * 400);
-	return {
-		day: (dayOfYear - ((((153 * mp) + 2) / 5) | 0)) + 1,
-		month: month,
-		year: year + ((month <= 2) ? 1 : 0)
-	};
-};
-var elm$time$Time$toDay = F2(
-	function (zone, time) {
-		return elm$time$Time$toCivil(
-			A2(elm$time$Time$toAdjustedMinutes, zone, time)).day;
-	});
-var elm$time$Time$Apr = {$: 'Apr'};
-var elm$time$Time$Aug = {$: 'Aug'};
-var elm$time$Time$Dec = {$: 'Dec'};
-var elm$time$Time$Feb = {$: 'Feb'};
-var elm$time$Time$Jan = {$: 'Jan'};
-var elm$time$Time$Jul = {$: 'Jul'};
-var elm$time$Time$Jun = {$: 'Jun'};
-var elm$time$Time$Mar = {$: 'Mar'};
-var elm$time$Time$May = {$: 'May'};
-var elm$time$Time$Nov = {$: 'Nov'};
-var elm$time$Time$Oct = {$: 'Oct'};
-var elm$time$Time$Sep = {$: 'Sep'};
-var elm$time$Time$toMonth = F2(
-	function (zone, time) {
-		var _n0 = elm$time$Time$toCivil(
-			A2(elm$time$Time$toAdjustedMinutes, zone, time)).month;
-		switch (_n0) {
-			case 1:
-				return elm$time$Time$Jan;
-			case 2:
-				return elm$time$Time$Feb;
-			case 3:
-				return elm$time$Time$Mar;
-			case 4:
-				return elm$time$Time$Apr;
-			case 5:
-				return elm$time$Time$May;
-			case 6:
-				return elm$time$Time$Jun;
-			case 7:
-				return elm$time$Time$Jul;
-			case 8:
-				return elm$time$Time$Aug;
-			case 9:
-				return elm$time$Time$Sep;
-			case 10:
-				return elm$time$Time$Oct;
-			case 11:
-				return elm$time$Time$Nov;
-			default:
-				return elm$time$Time$Dec;
-		}
-	});
-var elm$time$Time$toYear = F2(
-	function (zone, time) {
-		return elm$time$Time$toCivil(
-			A2(elm$time$Time$toAdjustedMinutes, zone, time)).year;
-	});
-var author$project$Main$getDate = F2(
-	function (time, zone) {
-		var year = elm$core$String$fromInt(
-			A2(elm$time$Time$toYear, zone, time));
-		var month = author$project$Main$toIntegerMonth(
-			A2(elm$time$Time$toMonth, zone, time));
-		var day = A3(
-			elm$core$String$padLeft,
-			2,
-			_Utils_chr('0'),
-			elm$core$String$fromInt(
-				A2(elm$time$Time$toDay, zone, time)));
-		return year + ('-' + (month + ('-' + day)));
-	});
 var author$project$SweepModels$Sweeps = F4(
 	function (date, activities, url, name) {
 		return {activities: activities, date: date, name: name, url: url};
@@ -6572,6 +6277,20 @@ var elm$core$List$filter = F2(
 				}),
 			_List_Nil,
 			list);
+	});
+var elm$core$List$map = F2(
+	function (f, xs) {
+		return A3(
+			elm$core$List$foldr,
+			F2(
+				function (x, acc) {
+					return A2(
+						elm$core$List$cons,
+						f(x),
+						acc);
+				}),
+			_List_Nil,
+			xs);
 	});
 var author$project$SweepModels$locationTypeDecoder = A2(
 	elm$json$Json$Decode$andThen,
@@ -6833,6 +6552,7 @@ var elm$parser$Parser$Advanced$andThen = F2(
 	});
 var elm$parser$Parser$andThen = elm$parser$Parser$Advanced$andThen;
 var elm$parser$Parser$ExpectingEnd = {$: 'ExpectingEnd'};
+var elm$core$String$length = _String_length;
 var elm$parser$Parser$Advanced$AddRight = F2(
 	function (a, b) {
 		return {$: 'AddRight', a: a, b: b};
@@ -6965,6 +6685,9 @@ var elm$parser$Parser$Advanced$Token = F2(
 	function (a, b) {
 		return {$: 'Token', a: a, b: b};
 	});
+var elm$core$Basics$negate = function (n) {
+	return -n;
+};
 var elm$core$Basics$not = _Basics_not;
 var elm$core$String$isEmpty = function (string) {
 	return string === '';
@@ -7524,17 +7247,133 @@ var author$project$SweepModels$sweepsDecoder = A3(
 				'date',
 				elm_community$json_extra$Json$Decode$Extra$datetime,
 				elm$json$Json$Decode$succeed(author$project$SweepModels$Sweeps)))));
-var author$project$Main$getSweeps = F2(
-	function (time, zone) {
-		return elm$http$Http$get(
-			{
-				expect: A2(
-					elm$http$Http$expectJson,
-					A2(elm$core$Basics$composeR, krisajenkins$remotedata$RemoteData$fromResult, author$project$Main$SweepsResponse),
-					author$project$SweepModels$sweepsDecoder),
-				url: '/api/sweeps/' + A2(author$project$Main$getDate, time, zone)
-			});
+var author$project$Main$getTodaysSweeps = elm$http$Http$get(
+	{
+		expect: A2(
+			elm$http$Http$expectJson,
+			A2(elm$core$Basics$composeR, krisajenkins$remotedata$RemoteData$fromResult, author$project$Main$SweepsResponse),
+			author$project$SweepModels$sweepsDecoder),
+		url: '/api/sweeps/today'
 	});
+var elm$core$Platform$Cmd$batch = _Platform_batch;
+var elm$core$Task$Perform = function (a) {
+	return {$: 'Perform', a: a};
+};
+var elm$core$Task$init = elm$core$Task$succeed(_Utils_Tuple0);
+var elm$core$Task$map = F2(
+	function (func, taskA) {
+		return A2(
+			elm$core$Task$andThen,
+			function (a) {
+				return elm$core$Task$succeed(
+					func(a));
+			},
+			taskA);
+	});
+var elm$core$Task$spawnCmd = F2(
+	function (router, _n0) {
+		var task = _n0.a;
+		return _Scheduler_spawn(
+			A2(
+				elm$core$Task$andThen,
+				elm$core$Platform$sendToApp(router),
+				task));
+	});
+var elm$core$Task$onEffects = F3(
+	function (router, commands, state) {
+		return A2(
+			elm$core$Task$map,
+			function (_n0) {
+				return _Utils_Tuple0;
+			},
+			elm$core$Task$sequence(
+				A2(
+					elm$core$List$map,
+					elm$core$Task$spawnCmd(router),
+					commands)));
+	});
+var elm$core$Task$onSelfMsg = F3(
+	function (_n0, _n1, _n2) {
+		return elm$core$Task$succeed(_Utils_Tuple0);
+	});
+var elm$core$Task$cmdMap = F2(
+	function (tagger, _n0) {
+		var task = _n0.a;
+		return elm$core$Task$Perform(
+			A2(elm$core$Task$map, tagger, task));
+	});
+_Platform_effectManagers['Task'] = _Platform_createManager(elm$core$Task$init, elm$core$Task$onEffects, elm$core$Task$onSelfMsg, elm$core$Task$cmdMap);
+var elm$core$Task$command = _Platform_leaf('Task');
+var elm$core$Task$perform = F2(
+	function (toMessage, task) {
+		return elm$core$Task$command(
+			elm$core$Task$Perform(
+				A2(elm$core$Task$map, toMessage, task)));
+	});
+var elm$time$Time$Name = function (a) {
+	return {$: 'Name', a: a};
+};
+var elm$time$Time$Offset = function (a) {
+	return {$: 'Offset', a: a};
+};
+var elm$time$Time$Zone = F2(
+	function (a, b) {
+		return {$: 'Zone', a: a, b: b};
+	});
+var elm$time$Time$customZone = elm$time$Time$Zone;
+var elm$time$Time$here = _Time_here(_Utils_Tuple0);
+var elm$time$Time$utc = A2(elm$time$Time$Zone, 0, _List_Nil);
+var krisajenkins$remotedata$RemoteData$NotAsked = {$: 'NotAsked'};
+var author$project$Main$init = function (_n0) {
+	return _Utils_Tuple2(
+		{
+			days: krisajenkins$remotedata$RemoteData$NotAsked,
+			firstDay: elm$core$Maybe$Nothing,
+			selectedDay: elm$core$Maybe$Nothing,
+			showDayPicker: false,
+			sweeps: krisajenkins$remotedata$RemoteData$NotAsked,
+			time: elm$time$Time$millisToPosix(0),
+			zone: elm$time$Time$utc
+		},
+		elm$core$Platform$Cmd$batch(
+			_List_fromArray(
+				[
+					A2(elm$core$Task$perform, author$project$Main$SetTimeZone, elm$time$Time$here),
+					author$project$Main$getDays,
+					author$project$Main$getTodaysSweeps
+				])));
+};
+var elm$core$Platform$Sub$batch = _Platform_batch;
+var elm$core$Platform$Sub$none = elm$core$Platform$Sub$batch(_List_Nil);
+var author$project$Main$subscriptions = function (model) {
+	return elm$core$Platform$Sub$none;
+};
+var author$project$Main$SetTime = function (a) {
+	return {$: 'SetTime', a: a};
+};
+var elm$time$Time$posixToMillis = function (_n0) {
+	var millis = _n0.a;
+	return millis;
+};
+var author$project$Main$getSweeps = function (time) {
+	return elm$http$Http$get(
+		{
+			expect: A2(
+				elm$http$Http$expectJson,
+				A2(elm$core$Basics$composeR, krisajenkins$remotedata$RemoteData$fromResult, author$project$Main$SweepsResponse),
+				author$project$SweepModels$sweepsDecoder),
+			url: '/api/sweeps/' + A3(elm$core$Basics$composeR, elm$time$Time$posixToMillis, elm$core$String$fromInt, time)
+		});
+};
+var elm$core$List$head = function (list) {
+	if (list.b) {
+		var x = list.a;
+		var xs = list.b;
+		return elm$core$Maybe$Just(x);
+	} else {
+		return elm$core$Maybe$Nothing;
+	}
+};
 var elm$core$Maybe$andThen = F2(
 	function (callback, maybeValue) {
 		if (maybeValue.$ === 'Just') {
@@ -7564,44 +7403,6 @@ var elm$core$Maybe$withDefault = F2(
 		}
 	});
 var elm$core$Platform$Cmd$none = elm$core$Platform$Cmd$batch(_List_Nil);
-var author$project$Main$getSweepsForDay = F2(
-	function (zone, day) {
-		var newTime = A2(
-			elm$core$Maybe$andThen,
-			function (d) {
-				return A2(
-					elm$core$Maybe$map,
-					function (t) {
-						return elm$time$Time$millisToPosix(t);
-					},
-					elm$core$String$toInt(d));
-			},
-			day);
-		var sweepsCmd = A2(
-			elm$core$Maybe$withDefault,
-			elm$core$Platform$Cmd$none,
-			A2(
-				elm$core$Maybe$map,
-				function (t) {
-					return A2(author$project$Main$getSweeps, t, zone);
-				},
-				newTime));
-		return _Utils_Tuple2(newTime, sweepsCmd);
-	});
-var author$project$Main$millisecondsInADay = 86400000;
-var author$project$Main$posixToString = function (posix) {
-	return elm$core$String$fromInt(
-		elm$time$Time$posixToMillis(posix));
-};
-var elm$core$List$head = function (list) {
-	if (list.b) {
-		var x = list.a;
-		var xs = list.b;
-		return elm$core$Maybe$Just(x);
-	} else {
-		return elm$core$Maybe$Nothing;
-	}
-};
 var elm$time$Time$now = _Time_now(elm$time$Time$millisToPosix);
 var author$project$Main$update = F2(
 	function (msg, model) {
@@ -7612,7 +7413,7 @@ var author$project$Main$update = F2(
 					_Utils_update(
 						model,
 						{time: newTime}),
-					A2(author$project$Main$getSweeps, newTime, model.zone));
+					elm$core$Platform$Cmd$none);
 			case 'SetTimeZone':
 				var newZone = msg.a;
 				return _Utils_Tuple2(
@@ -7628,7 +7429,8 @@ var author$project$Main$update = F2(
 						return A2(
 							elm$core$Maybe$map,
 							function (d) {
-								return author$project$Main$posixToString(d.id);
+								return elm$core$String$fromInt(
+									elm$time$Time$posixToMillis(d.id));
 							},
 							elm$core$List$head(days));
 					} else {
@@ -7642,42 +7444,16 @@ var author$project$Main$update = F2(
 					elm$core$Platform$Cmd$none);
 			case 'SweepsResponse':
 				var response = msg.a;
-				var newTime = function () {
-					if (response.$ === 'Success') {
-						var sweeps = response.a;
-						return elm$core$Maybe$Just(sweeps.date);
-					} else {
-						return elm$core$Maybe$Nothing;
-					}
-				}();
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{
-							sweeps: response,
-							time: A2(elm$core$Maybe$withDefault, model.time, newTime)
-						}),
+						{sweeps: response}),
 					elm$core$Platform$Cmd$none);
 			case 'ShowDayPicker':
-				var currentlySelectedDay = function () {
-					var _n3 = model.sweeps;
-					if (_n3.$ === 'Success') {
-						var sweep = _n3.a;
-						var _n4 = sweep.activities;
-						if (!_n4.b) {
-							return model.firstDay;
-						} else {
-							return elm$core$Maybe$Just(
-								author$project$Main$posixToString(sweep.date));
-						}
-					} else {
-						return model.firstDay;
-					}
-				}();
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{selectedDay: currentlySelectedDay, showDayPicker: true}),
+						{selectedDay: model.firstDay, showDayPicker: true}),
 					elm$core$Platform$Cmd$none);
 			case 'SelectDay':
 				var day = msg.a;
@@ -7694,10 +7470,27 @@ var author$project$Main$update = F2(
 						model,
 						{selectedDay: elm$core$Maybe$Nothing, showDayPicker: false}),
 					elm$core$Platform$Cmd$none);
-			case 'ChangeDay':
-				var _n5 = A2(author$project$Main$getSweepsForDay, model.zone, model.selectedDay);
-				var newTime = _n5.a;
-				var sweepsCmd = _n5.b;
+			default:
+				var newTime = A2(
+					elm$core$Maybe$andThen,
+					function (d) {
+						return A2(
+							elm$core$Maybe$map,
+							function (t) {
+								return elm$time$Time$millisToPosix(t);
+							},
+							elm$core$String$toInt(d));
+					},
+					model.selectedDay);
+				var sweepsCmd = A2(
+					elm$core$Maybe$withDefault,
+					elm$core$Platform$Cmd$none,
+					A2(
+						elm$core$Maybe$map,
+						function (t) {
+							return author$project$Main$getSweeps(t);
+						},
+						newTime));
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
@@ -7707,86 +7500,14 @@ var author$project$Main$update = F2(
 							time: A2(elm$core$Maybe$withDefault, model.time, newTime)
 						}),
 					sweepsCmd);
-			case 'GoToPreviousDay':
-				var time = elm$time$Time$millisToPosix(
-					function (t) {
-						return t - author$project$Main$millisecondsInADay;
-					}(
-						elm$time$Time$posixToMillis(model.time)));
-				return _Utils_Tuple2(
-					model,
-					A2(author$project$Main$getSweeps, time, model.zone));
-			default:
-				var time = elm$time$Time$millisToPosix(
-					author$project$Main$millisecondsInADay + elm$time$Time$posixToMillis(model.time));
-				return _Utils_Tuple2(
-					model,
-					A2(author$project$Main$getSweeps, time, model.zone));
 		}
 	});
 var author$project$Main$CancelChangeDay = {$: 'CancelChangeDay'};
 var author$project$Main$ChangeDay = {$: 'ChangeDay'};
-var author$project$Main$GoToNextDay = {$: 'GoToNextDay'};
-var author$project$Main$GoToPreviousDay = {$: 'GoToPreviousDay'};
 var author$project$Main$SelectDay = function (a) {
 	return {$: 'SelectDay', a: a};
 };
 var author$project$Main$ShowDayPicker = {$: 'ShowDayPicker'};
-var elm$virtual_dom$VirtualDom$toHandlerInt = function (handler) {
-	switch (handler.$) {
-		case 'Normal':
-			return 0;
-		case 'MayStopPropagation':
-			return 1;
-		case 'MayPreventDefault':
-			return 2;
-		default:
-			return 3;
-	}
-};
-var elm$html$Html$button = _VirtualDom_node('button');
-var elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
-var elm$html$Html$text = elm$virtual_dom$VirtualDom$text;
-var elm$json$Json$Encode$string = _Json_wrap;
-var elm$html$Html$Attributes$stringProperty = F2(
-	function (key, string) {
-		return A2(
-			_VirtualDom_property,
-			key,
-			elm$json$Json$Encode$string(string));
-	});
-var elm$html$Html$Attributes$class = elm$html$Html$Attributes$stringProperty('className');
-var elm$virtual_dom$VirtualDom$Normal = function (a) {
-	return {$: 'Normal', a: a};
-};
-var elm$virtual_dom$VirtualDom$on = _VirtualDom_on;
-var elm$html$Html$Events$on = F2(
-	function (event, decoder) {
-		return A2(
-			elm$virtual_dom$VirtualDom$on,
-			event,
-			elm$virtual_dom$VirtualDom$Normal(decoder));
-	});
-var elm$html$Html$Events$onClick = function (msg) {
-	return A2(
-		elm$html$Html$Events$on,
-		'click',
-		elm$json$Json$Decode$succeed(msg));
-};
-var author$project$Main$viewDayButton = F2(
-	function (label, msg) {
-		return A2(
-			elm$html$Html$button,
-			_List_fromArray(
-				[
-					elm$html$Html$Events$onClick(msg),
-					elm$html$Html$Attributes$class('btn')
-				]),
-			_List_fromArray(
-				[
-					elm$html$Html$text(label)
-				]));
-	});
 var author$project$Main$toTextMonth = function (month) {
 	switch (month.$) {
 		case 'Jan':
@@ -7818,7 +7539,7 @@ var author$project$Main$toTextMonth = function (month) {
 var author$project$Main$toWeekDay = function (weekday) {
 	switch (weekday.$) {
 		case 'Mon':
-			return 'Monday';
+			return 'Saturday';
 		case 'Tue':
 			return 'Tuesday';
 		case 'Wed':
@@ -7833,6 +7554,137 @@ var author$project$Main$toWeekDay = function (weekday) {
 			return 'Sunday';
 	}
 };
+var elm$core$String$cons = _String_cons;
+var elm$core$String$fromChar = function (_char) {
+	return A2(elm$core$String$cons, _char, '');
+};
+var elm$core$Bitwise$and = _Bitwise_and;
+var elm$core$Bitwise$shiftRightBy = _Bitwise_shiftRightBy;
+var elm$core$String$repeatHelp = F3(
+	function (n, chunk, result) {
+		return (n <= 0) ? result : A3(
+			elm$core$String$repeatHelp,
+			n >> 1,
+			_Utils_ap(chunk, chunk),
+			(!(n & 1)) ? result : _Utils_ap(result, chunk));
+	});
+var elm$core$String$repeat = F2(
+	function (n, chunk) {
+		return A3(elm$core$String$repeatHelp, n, chunk, '');
+	});
+var elm$core$String$padLeft = F3(
+	function (n, _char, string) {
+		return _Utils_ap(
+			A2(
+				elm$core$String$repeat,
+				n - elm$core$String$length(string),
+				elm$core$String$fromChar(_char)),
+			string);
+	});
+var elm$time$Time$flooredDiv = F2(
+	function (numerator, denominator) {
+		return elm$core$Basics$floor(numerator / denominator);
+	});
+var elm$time$Time$toAdjustedMinutesHelp = F3(
+	function (defaultOffset, posixMinutes, eras) {
+		toAdjustedMinutesHelp:
+		while (true) {
+			if (!eras.b) {
+				return posixMinutes + defaultOffset;
+			} else {
+				var era = eras.a;
+				var olderEras = eras.b;
+				if (_Utils_cmp(era.start, posixMinutes) < 0) {
+					return posixMinutes + era.offset;
+				} else {
+					var $temp$defaultOffset = defaultOffset,
+						$temp$posixMinutes = posixMinutes,
+						$temp$eras = olderEras;
+					defaultOffset = $temp$defaultOffset;
+					posixMinutes = $temp$posixMinutes;
+					eras = $temp$eras;
+					continue toAdjustedMinutesHelp;
+				}
+			}
+		}
+	});
+var elm$time$Time$toAdjustedMinutes = F2(
+	function (_n0, time) {
+		var defaultOffset = _n0.a;
+		var eras = _n0.b;
+		return A3(
+			elm$time$Time$toAdjustedMinutesHelp,
+			defaultOffset,
+			A2(
+				elm$time$Time$flooredDiv,
+				elm$time$Time$posixToMillis(time),
+				60000),
+			eras);
+	});
+var elm$core$Basics$ge = _Utils_ge;
+var elm$time$Time$toCivil = function (minutes) {
+	var rawDay = A2(elm$time$Time$flooredDiv, minutes, 60 * 24) + 719468;
+	var era = (((rawDay >= 0) ? rawDay : (rawDay - 146096)) / 146097) | 0;
+	var dayOfEra = rawDay - (era * 146097);
+	var yearOfEra = ((((dayOfEra - ((dayOfEra / 1460) | 0)) + ((dayOfEra / 36524) | 0)) - ((dayOfEra / 146096) | 0)) / 365) | 0;
+	var dayOfYear = dayOfEra - (((365 * yearOfEra) + ((yearOfEra / 4) | 0)) - ((yearOfEra / 100) | 0));
+	var mp = (((5 * dayOfYear) + 2) / 153) | 0;
+	var month = mp + ((mp < 10) ? 3 : (-9));
+	var year = yearOfEra + (era * 400);
+	return {
+		day: (dayOfYear - ((((153 * mp) + 2) / 5) | 0)) + 1,
+		month: month,
+		year: year + ((month <= 2) ? 1 : 0)
+	};
+};
+var elm$time$Time$toDay = F2(
+	function (zone, time) {
+		return elm$time$Time$toCivil(
+			A2(elm$time$Time$toAdjustedMinutes, zone, time)).day;
+	});
+var elm$time$Time$Apr = {$: 'Apr'};
+var elm$time$Time$Aug = {$: 'Aug'};
+var elm$time$Time$Dec = {$: 'Dec'};
+var elm$time$Time$Feb = {$: 'Feb'};
+var elm$time$Time$Jan = {$: 'Jan'};
+var elm$time$Time$Jul = {$: 'Jul'};
+var elm$time$Time$Jun = {$: 'Jun'};
+var elm$time$Time$Mar = {$: 'Mar'};
+var elm$time$Time$May = {$: 'May'};
+var elm$time$Time$Nov = {$: 'Nov'};
+var elm$time$Time$Oct = {$: 'Oct'};
+var elm$time$Time$Sep = {$: 'Sep'};
+var elm$time$Time$toMonth = F2(
+	function (zone, time) {
+		var _n0 = elm$time$Time$toCivil(
+			A2(elm$time$Time$toAdjustedMinutes, zone, time)).month;
+		switch (_n0) {
+			case 1:
+				return elm$time$Time$Jan;
+			case 2:
+				return elm$time$Time$Feb;
+			case 3:
+				return elm$time$Time$Mar;
+			case 4:
+				return elm$time$Time$Apr;
+			case 5:
+				return elm$time$Time$May;
+			case 6:
+				return elm$time$Time$Jun;
+			case 7:
+				return elm$time$Time$Jul;
+			case 8:
+				return elm$time$Time$Aug;
+			case 9:
+				return elm$time$Time$Sep;
+			case 10:
+				return elm$time$Time$Oct;
+			case 11:
+				return elm$time$Time$Nov;
+			default:
+				return elm$time$Time$Dec;
+		}
+	});
 var elm$time$Time$Fri = {$: 'Fri'};
 var elm$time$Time$Mon = {$: 'Mon'};
 var elm$time$Time$Sat = {$: 'Sat'};
@@ -7866,7 +7718,12 @@ var elm$time$Time$toWeekday = F2(
 				return elm$time$Time$Wed;
 		}
 	});
-var author$project$Main$viewHeaderTime = F2(
+var elm$time$Time$toYear = F2(
+	function (zone, time) {
+		return elm$time$Time$toCivil(
+			A2(elm$time$Time$toAdjustedMinutes, zone, time)).year;
+	});
+var author$project$Main$viewTime = F2(
 	function (time, zone) {
 		var year = elm$core$String$fromInt(
 			A2(elm$time$Time$toYear, zone, time));
@@ -7882,38 +7739,51 @@ var author$project$Main$viewHeaderTime = F2(
 				A2(elm$time$Time$toDay, zone, time)));
 		return weekDay + (', ' + (month + (' ' + (day + (' ' + year)))));
 	});
-var author$project$Main$viewTime = F2(
-	function (time, zone) {
-		var year = elm$core$String$fromInt(
-			A2(elm$time$Time$toYear, zone, time));
-		var weekDay = author$project$Main$toWeekDay(
-			A2(elm$time$Time$toWeekday, zone, time));
-		var month = author$project$Main$toIntegerMonth(
-			A2(elm$time$Time$toMonth, zone, time));
-		var day = A3(
-			elm$core$String$padLeft,
-			2,
-			_Utils_chr('0'),
-			elm$core$String$fromInt(
-				A2(elm$time$Time$toDay, zone, time)));
-		return month + ('/' + (day + ('/' + (year + (', ' + weekDay)))));
-	});
-var elm$core$List$sortBy = _List_sortBy;
-var elm$html$Html$div = _VirtualDom_node('div');
+var elm$virtual_dom$VirtualDom$toHandlerInt = function (handler) {
+	switch (handler.$) {
+		case 'Normal':
+			return 0;
+		case 'MayStopPropagation':
+			return 1;
+		case 'MayPreventDefault':
+			return 2;
+		default:
+			return 3;
+	}
+};
+var elm$html$Html$button = _VirtualDom_node('button');
 var elm$html$Html$h1 = _VirtualDom_node('h1');
-var elm$html$Html$label = _VirtualDom_node('label');
 var elm$html$Html$option = _VirtualDom_node('option');
 var elm$html$Html$select = _VirtualDom_node('select');
-var elm$json$Json$Encode$bool = _Json_wrap;
-var elm$html$Html$Attributes$boolProperty = F2(
-	function (key, bool) {
+var elm$html$Html$span = _VirtualDom_node('span');
+var elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
+var elm$html$Html$text = elm$virtual_dom$VirtualDom$text;
+var elm$json$Json$Encode$string = _Json_wrap;
+var elm$html$Html$Attributes$stringProperty = F2(
+	function (key, string) {
 		return A2(
 			_VirtualDom_property,
 			key,
-			elm$json$Json$Encode$bool(bool));
+			elm$json$Json$Encode$string(string));
 	});
-var elm$html$Html$Attributes$selected = elm$html$Html$Attributes$boolProperty('selected');
 var elm$html$Html$Attributes$value = elm$html$Html$Attributes$stringProperty('value');
+var elm$virtual_dom$VirtualDom$Normal = function (a) {
+	return {$: 'Normal', a: a};
+};
+var elm$virtual_dom$VirtualDom$on = _VirtualDom_on;
+var elm$html$Html$Events$on = F2(
+	function (event, decoder) {
+		return A2(
+			elm$virtual_dom$VirtualDom$on,
+			event,
+			elm$virtual_dom$VirtualDom$Normal(decoder));
+	});
+var elm$html$Html$Events$onClick = function (msg) {
+	return A2(
+		elm$html$Html$Events$on,
+		'click',
+		elm$json$Json$Decode$succeed(msg));
+};
 var elm$html$Html$Events$alwaysStop = function (x) {
 	return _Utils_Tuple2(x, true);
 };
@@ -7945,37 +7815,25 @@ var elm$html$Html$Events$onInput = function (tagger) {
 			elm$html$Html$Events$alwaysStop,
 			A2(elm$json$Json$Decode$map, tagger, elm$html$Html$Events$targetValue)));
 };
-var author$project$Main$viewDatePicker = function (model) {
-	var _n0 = model.showDayPicker;
-	if (!_n0) {
+var author$project$Main$viewDatePicker = F2(
+	function (model, date) {
 		return A2(
 			elm$html$Html$h1,
-			_List_fromArray(
-				[
-					elm$html$Html$Attributes$class('flex justify-center flex-column')
-				]),
-			_List_fromArray(
-				[
-					A2(
-					elm$html$Html$div,
-					_List_fromArray(
+			_List_Nil,
+			function () {
+				var _n0 = model.showDayPicker;
+				if (!_n0) {
+					return _List_fromArray(
 						[
-							elm$html$Html$Attributes$class('tc')
-						]),
-					_List_fromArray(
-						[
+							A2(
+							elm$html$Html$span,
+							_List_Nil,
+							_List_fromArray(
+								[
+									elm$html$Html$text('Sweeps for ')
+								])),
 							elm$html$Html$text(
-							'Sweeps for ' + A2(author$project$Main$viewHeaderTime, model.time, model.zone))
-						])),
-					A2(
-					elm$html$Html$div,
-					_List_fromArray(
-						[
-							elm$html$Html$Attributes$class('flex justify-center')
-						]),
-					_List_fromArray(
-						[
-							A2(author$project$Main$viewDayButton, '⇐ Previous Day', author$project$Main$GoToPreviousDay),
+							A2(author$project$Main$viewTime, date, model.zone)),
 							function () {
 							var _n1 = model.days;
 							if (_n1.$ === 'Success') {
@@ -7983,44 +7841,20 @@ var author$project$Main$viewDatePicker = function (model) {
 									elm$html$Html$button,
 									_List_fromArray(
 										[
-											elm$html$Html$Events$onClick(author$project$Main$ShowDayPicker),
-											elm$html$Html$Attributes$class('btn')
+											elm$html$Html$Events$onClick(author$project$Main$ShowDayPicker)
 										]),
 									_List_fromArray(
 										[
-											elm$html$Html$text('📅 Change Date')
+											elm$html$Html$text('Change Date')
 										]));
 							} else {
 								return elm$html$Html$text('');
 							}
-						}(),
-							A2(author$project$Main$viewDayButton, 'Next Day ⇒', author$project$Main$GoToNextDay)
-						]))
-				]));
-	} else {
-		return A2(
-			elm$html$Html$h1,
-			_List_fromArray(
-				[
-					elm$html$Html$Attributes$class('flex justify-center flex-column')
-				]),
-			_List_fromArray(
-				[
-					A2(
-					elm$html$Html$label,
-					_List_fromArray(
+						}()
+						]);
+				} else {
+					return _List_fromArray(
 						[
-							elm$html$Html$Attributes$class('tc')
-						]),
-					_List_fromArray(
-						[
-							A2(
-							elm$html$Html$div,
-							_List_Nil,
-							_List_fromArray(
-								[
-									elm$html$Html$text('Pick a day with sweeps:')
-								])),
 							A2(
 							elm$html$Html$select,
 							_List_fromArray(
@@ -8034,16 +7868,13 @@ var author$project$Main$viewDatePicker = function (model) {
 									return A2(
 										elm$core$List$map,
 										function (d) {
-											var idString = author$project$Main$posixToString(d.id);
-											var isSelected = _Utils_eq(
-												idString,
-												A2(elm$core$Maybe$withDefault, '', model.selectedDay));
 											return A2(
 												elm$html$Html$option,
 												_List_fromArray(
 													[
-														elm$html$Html$Attributes$value(idString),
-														elm$html$Html$Attributes$selected(isSelected)
+														elm$html$Html$Attributes$value(
+														elm$core$String$fromInt(
+															elm$time$Time$posixToMillis(d.id)))
 													]),
 												_List_fromArray(
 													[
@@ -8051,68 +7882,35 @@ var author$project$Main$viewDatePicker = function (model) {
 														A2(author$project$Main$viewTime, d.id, model.zone))
 													]));
 										},
-										A2(
-											elm$core$List$sortBy,
-											function (d) {
-												return elm$time$Time$posixToMillis(d.id);
-											},
-											days));
+										days);
 								} else {
 									return _List_Nil;
 								}
-							}())
-						])),
-					A2(
-					elm$html$Html$div,
-					_List_fromArray(
-						[
-							elm$html$Html$Attributes$class('flex justify-center')
-						]),
-					_List_fromArray(
-						[
+							}()),
 							A2(
 							elm$html$Html$button,
 							_List_fromArray(
 								[
-									elm$html$Html$Events$onClick(author$project$Main$ChangeDay),
-									elm$html$Html$Attributes$class('btn')
+									elm$html$Html$Events$onClick(author$project$Main$ChangeDay)
 								]),
 							_List_fromArray(
 								[
-									elm$html$Html$text('✔ Accept')
+									elm$html$Html$text('Accept')
 								])),
 							A2(
 							elm$html$Html$button,
 							_List_fromArray(
 								[
-									elm$html$Html$Events$onClick(author$project$Main$CancelChangeDay),
-									elm$html$Html$Attributes$class('btn')
+									elm$html$Html$Events$onClick(author$project$Main$CancelChangeDay)
 								]),
 							_List_fromArray(
 								[
-									elm$html$Html$text('❌ Cancel')
+									elm$html$Html$text('Cancel')
 								]))
-						]))
-				]));
-	}
-};
-var author$project$Main$errorToString = function (err) {
-	switch (err.$) {
-		case 'Timeout':
-			return 'Timeout exceeded';
-		case 'NetworkError':
-			return 'Network error';
-		case 'BadStatus':
-			var status = err.a;
-			return 'Bad Status: ' + elm$core$String$fromInt(status);
-		case 'BadBody':
-			var text = err.a;
-			return 'Unexpected response from api: ' + text;
-		default:
-			var url = err.a;
-			return 'Malformed url: ' + url;
-	}
-};
+						]);
+				}
+			}());
+	});
 var author$project$SweepModels$divisionToStr = function (division) {
 	switch (division.$) {
 		case 'Newton':
@@ -8220,13 +8018,7 @@ var author$project$Main$viewActivity = function (activity) {
 						[
 							elm$html$Html$text('Illegal Dump')
 						])),
-					A2(
-					elm$html$Html$td,
-					_List_Nil,
-					_List_fromArray(
-						[
-							elm$html$Html$text(ma.comments)
-						]))
+					A2(elm$html$Html$td, _List_Nil, _List_Nil)
 				]));
 	} else {
 		var da = activity.a;
@@ -8240,34 +8032,7 @@ var author$project$Main$viewActivity = function (activity) {
 					_List_Nil,
 					_List_fromArray(
 						[
-							A2(
-							elm$html$Html$div,
-							_List_Nil,
-							_List_fromArray(
-								[
-									elm$html$Html$text(da.address)
-								])),
-							A2(
-							elm$html$Html$div,
-							_List_Nil,
-							_List_fromArray(
-								[
-									elm$html$Html$text('with cross streets:')
-								])),
-							A2(
-							elm$html$Html$div,
-							_List_Nil,
-							_List_fromArray(
-								[
-									elm$html$Html$text(da.crossStreetOne)
-								])),
-							A2(
-							elm$html$Html$div,
-							_List_Nil,
-							_List_fromArray(
-								[
-									elm$html$Html$text(da.crossStreetTwo)
-								]))
+							elm$html$Html$text(da.address + (' with cross streets ' + (da.crossStreetOne + (' and ' + da.crossStreetTwo))))
 						])),
 					A2(
 					elm$html$Html$td,
@@ -8309,176 +8074,140 @@ var author$project$Main$viewActivity = function (activity) {
 	}
 };
 var elm$html$Html$a = _VirtualDom_node('a');
+var elm$html$Html$div = _VirtualDom_node('div');
 var elm$html$Html$p = _VirtualDom_node('p');
 var elm$html$Html$table = _VirtualDom_node('table');
 var elm$html$Html$tbody = _VirtualDom_node('tbody');
 var elm$html$Html$th = _VirtualDom_node('th');
 var elm$html$Html$thead = _VirtualDom_node('thead');
+var elm$html$Html$Attributes$class = elm$html$Html$Attributes$stringProperty('className');
 var elm$html$Html$Attributes$href = function (url) {
 	return A2(
 		elm$html$Html$Attributes$stringProperty,
 		'href',
 		_VirtualDom_noJavaScriptUri(url));
 };
-var author$project$Main$viewSweeps = F2(
-	function (zone, sweeps) {
-		switch (sweeps.$) {
-			case 'NotAsked':
-				return A2(
-					elm$html$Html$div,
-					_List_fromArray(
-						[
-							elm$html$Html$Attributes$class('tc')
-						]),
-					_List_fromArray(
-						[
-							elm$html$Html$text('Loading')
-						]));
-			case 'Loading':
-				return A2(
-					elm$html$Html$div,
-					_List_fromArray(
-						[
-							elm$html$Html$Attributes$class('tc')
-						]),
-					_List_fromArray(
-						[
-							elm$html$Html$text('Loading')
-						]));
-			case 'Success':
-				var sweep = sweeps.a;
-				var _n1 = sweep.activities;
-				if (!_n1.b) {
-					return A2(
-						elm$html$Html$div,
-						_List_fromArray(
-							[
-								elm$html$Html$Attributes$class('tc')
-							]),
-						_List_fromArray(
-							[
-								elm$html$Html$text('No sweeps loaded for today.')
-							]));
-				} else {
-					var dateString = A2(author$project$Main$getDate, sweep.date, zone);
-					var csvUrl = '/api/csv/' + dateString;
-					return A2(
-						elm$html$Html$div,
+var author$project$Main$viewSweeps = function (sweeps) {
+	switch (sweeps.$) {
+		case 'NotAsked':
+			return A2(
+				elm$html$Html$div,
+				_List_Nil,
+				_List_fromArray(
+					[
+						elm$html$Html$text('Loading')
+					]));
+		case 'Loading':
+			return A2(
+				elm$html$Html$div,
+				_List_Nil,
+				_List_fromArray(
+					[
+						elm$html$Html$text('Loading')
+					]));
+		case 'Success':
+			var sweep = sweeps.a;
+			return A2(
+				elm$html$Html$div,
+				_List_Nil,
+				_List_fromArray(
+					[
+						A2(
+						elm$html$Html$p,
 						_List_Nil,
 						_List_fromArray(
 							[
 								A2(
-								elm$html$Html$p,
-								_List_Nil,
+								elm$html$Html$a,
 								_List_fromArray(
 									[
-										A2(
-										elm$html$Html$a,
-										_List_fromArray(
-											[
-												elm$html$Html$Attributes$href(sweep.url)
-											]),
-										_List_fromArray(
-											[
-												elm$html$Html$text('Download pdf: ' + sweep.name)
-											])),
-										A2(
-										elm$html$Html$a,
-										_List_fromArray(
-											[
-												elm$html$Html$Attributes$class('mh2'),
-												elm$html$Html$Attributes$href(csvUrl)
-											]),
-										_List_fromArray(
-											[
-												elm$html$Html$text('Download csv: ' + sweep.name)
-											]))
-									])),
+										elm$html$Html$Attributes$href(sweep.url)
+									]),
+								_List_fromArray(
+									[
+										elm$html$Html$text('Download pdf: ' + sweep.name)
+									]))
+							])),
+						A2(
+						elm$html$Html$table,
+						_List_Nil,
+						_List_fromArray(
+							[
 								A2(
-								elm$html$Html$table,
+								elm$html$Html$thead,
 								_List_Nil,
 								_List_fromArray(
 									[
 										A2(
-										elm$html$Html$thead,
+										elm$html$Html$tr,
 										_List_Nil,
 										_List_fromArray(
 											[
 												A2(
-												elm$html$Html$tr,
+												elm$html$Html$th,
+												_List_fromArray(
+													[
+														elm$html$Html$Attributes$class('w5')
+													]),
+												_List_fromArray(
+													[
+														elm$html$Html$text('Address')
+													])),
+												A2(
+												elm$html$Html$th,
 												_List_Nil,
 												_List_fromArray(
 													[
-														A2(
-														elm$html$Html$th,
-														_List_fromArray(
-															[
-																elm$html$Html$Attributes$class('w5')
-															]),
-														_List_fromArray(
-															[
-																elm$html$Html$text('Address')
-															])),
-														A2(
-														elm$html$Html$th,
-														_List_Nil,
-														_List_fromArray(
-															[
-																elm$html$Html$text('Division')
-															])),
-														A2(
-														elm$html$Html$th,
-														_List_Nil,
-														_List_fromArray(
-															[
-																elm$html$Html$text('Location')
-															])),
-														A2(
-														elm$html$Html$th,
-														_List_Nil,
-														_List_fromArray(
-															[
-																elm$html$Html$text('Action Type')
-															])),
-														A2(
-														elm$html$Html$th,
-														_List_Nil,
-														_List_fromArray(
-															[
-																elm$html$Html$text('Comments')
-															]))
+														elm$html$Html$text('Division')
+													])),
+												A2(
+												elm$html$Html$th,
+												_List_Nil,
+												_List_fromArray(
+													[
+														elm$html$Html$text('Location')
+													])),
+												A2(
+												elm$html$Html$th,
+												_List_Nil,
+												_List_fromArray(
+													[
+														elm$html$Html$text('Action Type')
+													])),
+												A2(
+												elm$html$Html$th,
+												_List_Nil,
+												_List_fromArray(
+													[
+														elm$html$Html$text('Comments')
 													]))
-											])),
-										A2(
-										elm$html$Html$tbody,
-										_List_Nil,
-										A2(elm$core$List$map, author$project$Main$viewActivity, sweep.activities))
-									]))
-							]));
-				}
-			default:
-				var error = sweeps.a;
-				return A2(
-					elm$html$Html$div,
-					_List_fromArray(
-						[
-							elm$html$Html$Attributes$class('tc')
-						]),
-					_List_fromArray(
-						[
-							elm$html$Html$text(
-							'Error: ' + author$project$Main$errorToString(error))
-						]));
-		}
-	});
+											]))
+									])),
+								A2(
+								elm$html$Html$tbody,
+								_List_Nil,
+								A2(elm$core$List$map, author$project$Main$viewActivity, sweep.activities))
+							]))
+					]));
+		default:
+			var error = sweeps.a;
+			return A2(
+				elm$html$Html$div,
+				_List_Nil,
+				_List_fromArray(
+					[
+						elm$html$Html$text('No Sweeps loaded for today')
+					]));
+	}
+};
 var author$project$Main$view = function (model) {
 	return A2(
 		elm$html$Html$div,
 		_List_Nil,
 		_List_fromArray(
 			[
-				author$project$Main$viewDatePicker(model),
-				A2(author$project$Main$viewSweeps, model.zone, model.sweeps)
+				A2(author$project$Main$viewDatePicker, model, model.time),
+				author$project$Main$viewSweeps(model.sweeps)
 			]));
 };
 var elm$browser$Browser$External = function (a) {

@@ -1,5 +1,5 @@
 const fs = require('fs');
-const moment = require('moment-timezone');
+const moment = require('moment');
 const pdfjsLib = require('pdfjs-dist');
 
 const changeMarkerFilePath = './data/lastChanged.txt';
@@ -128,7 +128,7 @@ module.exports = function run() {
               const currentX = item.transform[4];
 
               const previousX = acc.previous.transform[4];
-              if(previousX === currentX || withInDelta(1, previousX + acc.previous.width, currentX)) {
+              if(previousX === currentX || withInDelta(2, previousX + acc.previous.width, currentX)) {
                   return { results: acc.results, row: acc.row, previous: { str: acc.previous.str + item.str, transform: acc.previous.transform, width: acc.previous.width }, rowY: acc.rowY };
               } else if(withIn(acc.rowY, currentY) || currentY > acc.rowY) {           
                   acc.row.push({ text: acc.previous.str, start: previousX, end: previousX + acc.previous.width });
@@ -156,9 +156,9 @@ module.exports = function run() {
 
         function parseData(rows) {
           const rawDate = (rows[1] || [])[0].text || '';
-          const momentDate = moment.tz(rawDate, 'dddd, MMMM Do [@] h:mm', 'America/Los_Angeles');
-          const dateId = momentDate.format("YYYY-MM-DD");
-          const date = momentDate.startOf('date').toISOString();
+          const momentDate = moment(rawDate, 'dddd, MMMM Do [@] h:mm');
+          const dateId = momentDate.valueOf();
+          const date = momentDate.toISOString();
 
           let mode = '';
           let headers = [];
