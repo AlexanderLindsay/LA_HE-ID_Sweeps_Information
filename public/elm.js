@@ -7945,158 +7945,157 @@ var elm$html$Html$Events$onInput = function (tagger) {
 			elm$html$Html$Events$alwaysStop,
 			A2(elm$json$Json$Decode$map, tagger, elm$html$Html$Events$targetValue)));
 };
-var author$project$Main$viewDatePicker = F2(
-	function (model, date) {
-		var _n0 = model.showDayPicker;
-		if (!_n0) {
-			return A2(
-				elm$html$Html$h1,
-				_List_fromArray(
-					[
-						elm$html$Html$Attributes$class('flex justify-center flex-column')
-					]),
-				_List_fromArray(
-					[
-						A2(
-						elm$html$Html$div,
-						_List_fromArray(
-							[
-								elm$html$Html$Attributes$class('tc')
-							]),
-						_List_fromArray(
-							[
-								elm$html$Html$text(
-								'Sweeps for ' + A2(author$project$Main$viewHeaderTime, date, model.zone))
-							])),
-						A2(
-						elm$html$Html$div,
-						_List_fromArray(
-							[
-								elm$html$Html$Attributes$class('flex justify-center')
-							]),
-						_List_fromArray(
-							[
-								A2(author$project$Main$viewDayButton, '⇐ Previous Day', author$project$Main$GoToPreviousDay),
-								function () {
-								var _n1 = model.days;
-								if (_n1.$ === 'Success') {
+var author$project$Main$viewDatePicker = function (model) {
+	var _n0 = model.showDayPicker;
+	if (!_n0) {
+		return A2(
+			elm$html$Html$h1,
+			_List_fromArray(
+				[
+					elm$html$Html$Attributes$class('flex justify-center flex-column')
+				]),
+			_List_fromArray(
+				[
+					A2(
+					elm$html$Html$div,
+					_List_fromArray(
+						[
+							elm$html$Html$Attributes$class('tc')
+						]),
+					_List_fromArray(
+						[
+							elm$html$Html$text(
+							'Sweeps for ' + A2(author$project$Main$viewHeaderTime, model.time, model.zone))
+						])),
+					A2(
+					elm$html$Html$div,
+					_List_fromArray(
+						[
+							elm$html$Html$Attributes$class('flex justify-center')
+						]),
+					_List_fromArray(
+						[
+							A2(author$project$Main$viewDayButton, '⇐ Previous Day', author$project$Main$GoToPreviousDay),
+							function () {
+							var _n1 = model.days;
+							if (_n1.$ === 'Success') {
+								return A2(
+									elm$html$Html$button,
+									_List_fromArray(
+										[
+											elm$html$Html$Events$onClick(author$project$Main$ShowDayPicker),
+											elm$html$Html$Attributes$class('btn')
+										]),
+									_List_fromArray(
+										[
+											elm$html$Html$text('📅 Change Date')
+										]));
+							} else {
+								return elm$html$Html$text('');
+							}
+						}(),
+							A2(author$project$Main$viewDayButton, 'Next Day ⇒', author$project$Main$GoToNextDay)
+						]))
+				]));
+	} else {
+		return A2(
+			elm$html$Html$h1,
+			_List_fromArray(
+				[
+					elm$html$Html$Attributes$class('flex justify-center flex-column')
+				]),
+			_List_fromArray(
+				[
+					A2(
+					elm$html$Html$label,
+					_List_fromArray(
+						[
+							elm$html$Html$Attributes$class('tc')
+						]),
+					_List_fromArray(
+						[
+							A2(
+							elm$html$Html$div,
+							_List_Nil,
+							_List_fromArray(
+								[
+									elm$html$Html$text('Pick a day with sweeps:')
+								])),
+							A2(
+							elm$html$Html$select,
+							_List_fromArray(
+								[
+									elm$html$Html$Events$onInput(author$project$Main$SelectDay)
+								]),
+							function () {
+								var _n2 = model.days;
+								if (_n2.$ === 'Success') {
+									var days = _n2.a;
 									return A2(
-										elm$html$Html$button,
-										_List_fromArray(
-											[
-												elm$html$Html$Events$onClick(author$project$Main$ShowDayPicker),
-												elm$html$Html$Attributes$class('btn')
-											]),
-										_List_fromArray(
-											[
-												elm$html$Html$text('📅 Change Date')
-											]));
-								} else {
-									return elm$html$Html$text('');
-								}
-							}(),
-								A2(author$project$Main$viewDayButton, 'Next Day ⇒', author$project$Main$GoToNextDay)
-							]))
-					]));
-		} else {
-			return A2(
-				elm$html$Html$h1,
-				_List_fromArray(
-					[
-						elm$html$Html$Attributes$class('flex justify-center flex-column')
-					]),
-				_List_fromArray(
-					[
-						A2(
-						elm$html$Html$label,
-						_List_fromArray(
-							[
-								elm$html$Html$Attributes$class('tc')
-							]),
-						_List_fromArray(
-							[
-								A2(
-								elm$html$Html$div,
-								_List_Nil,
-								_List_fromArray(
-									[
-										elm$html$Html$text('Pick a day with sweeps:')
-									])),
-								A2(
-								elm$html$Html$select,
-								_List_fromArray(
-									[
-										elm$html$Html$Events$onInput(author$project$Main$SelectDay)
-									]),
-								function () {
-									var _n2 = model.days;
-									if (_n2.$ === 'Success') {
-										var days = _n2.a;
-										return A2(
-											elm$core$List$map,
+										elm$core$List$map,
+										function (d) {
+											var idString = author$project$Main$posixToString(d.id);
+											var isSelected = _Utils_eq(
+												idString,
+												A2(elm$core$Maybe$withDefault, '', model.selectedDay));
+											return A2(
+												elm$html$Html$option,
+												_List_fromArray(
+													[
+														elm$html$Html$Attributes$value(idString),
+														elm$html$Html$Attributes$selected(isSelected)
+													]),
+												_List_fromArray(
+													[
+														elm$html$Html$text(
+														A2(author$project$Main$viewTime, d.id, model.zone))
+													]));
+										},
+										A2(
+											elm$core$List$sortBy,
 											function (d) {
-												var idString = author$project$Main$posixToString(d.id);
-												var isSelected = _Utils_eq(
-													idString,
-													A2(elm$core$Maybe$withDefault, '', model.selectedDay));
-												return A2(
-													elm$html$Html$option,
-													_List_fromArray(
-														[
-															elm$html$Html$Attributes$value(idString),
-															elm$html$Html$Attributes$selected(isSelected)
-														]),
-													_List_fromArray(
-														[
-															elm$html$Html$text(
-															A2(author$project$Main$viewTime, d.id, model.zone))
-														]));
+												return elm$time$Time$posixToMillis(d.id);
 											},
-											A2(
-												elm$core$List$sortBy,
-												function (d) {
-													return elm$time$Time$posixToMillis(d.id);
-												},
-												days));
-									} else {
-										return _List_Nil;
-									}
-								}())
-							])),
-						A2(
-						elm$html$Html$div,
-						_List_fromArray(
-							[
-								elm$html$Html$Attributes$class('flex justify-center')
-							]),
-						_List_fromArray(
-							[
-								A2(
-								elm$html$Html$button,
-								_List_fromArray(
-									[
-										elm$html$Html$Events$onClick(author$project$Main$ChangeDay),
-										elm$html$Html$Attributes$class('btn')
-									]),
-								_List_fromArray(
-									[
-										elm$html$Html$text('✔ Accept')
-									])),
-								A2(
-								elm$html$Html$button,
-								_List_fromArray(
-									[
-										elm$html$Html$Events$onClick(author$project$Main$CancelChangeDay),
-										elm$html$Html$Attributes$class('btn')
-									]),
-								_List_fromArray(
-									[
-										elm$html$Html$text('❌ Cancel')
-									]))
-							]))
-					]));
-		}
-	});
+											days));
+								} else {
+									return _List_Nil;
+								}
+							}())
+						])),
+					A2(
+					elm$html$Html$div,
+					_List_fromArray(
+						[
+							elm$html$Html$Attributes$class('flex justify-center')
+						]),
+					_List_fromArray(
+						[
+							A2(
+							elm$html$Html$button,
+							_List_fromArray(
+								[
+									elm$html$Html$Events$onClick(author$project$Main$ChangeDay),
+									elm$html$Html$Attributes$class('btn')
+								]),
+							_List_fromArray(
+								[
+									elm$html$Html$text('✔ Accept')
+								])),
+							A2(
+							elm$html$Html$button,
+							_List_fromArray(
+								[
+									elm$html$Html$Events$onClick(author$project$Main$CancelChangeDay),
+									elm$html$Html$Attributes$class('btn')
+								]),
+							_List_fromArray(
+								[
+									elm$html$Html$text('❌ Cancel')
+								]))
+						]))
+				]));
+	}
+};
 var author$project$Main$errorToString = function (err) {
 	switch (err.$) {
 		case 'Timeout':
@@ -8321,34 +8320,10 @@ var elm$html$Html$Attributes$href = function (url) {
 		'href',
 		_VirtualDom_noJavaScriptUri(url));
 };
-var author$project$Main$viewSweeps = function (sweeps) {
-	switch (sweeps.$) {
-		case 'NotAsked':
-			return A2(
-				elm$html$Html$div,
-				_List_fromArray(
-					[
-						elm$html$Html$Attributes$class('tc')
-					]),
-				_List_fromArray(
-					[
-						elm$html$Html$text('Loading')
-					]));
-		case 'Loading':
-			return A2(
-				elm$html$Html$div,
-				_List_fromArray(
-					[
-						elm$html$Html$Attributes$class('tc')
-					]),
-				_List_fromArray(
-					[
-						elm$html$Html$text('Loading')
-					]));
-		case 'Success':
-			var sweep = sweeps.a;
-			var _n1 = sweep.activities;
-			if (!_n1.b) {
+var author$project$Main$viewSweeps = F2(
+	function (zone, sweeps) {
+		switch (sweeps.$) {
+			case 'NotAsked':
 				return A2(
 					elm$html$Html$div,
 					_List_fromArray(
@@ -8357,115 +8332,153 @@ var author$project$Main$viewSweeps = function (sweeps) {
 						]),
 					_List_fromArray(
 						[
-							elm$html$Html$text('No sweeps loaded for today.')
+							elm$html$Html$text('Loading')
 						]));
-			} else {
+			case 'Loading':
 				return A2(
 					elm$html$Html$div,
-					_List_Nil,
 					_List_fromArray(
 						[
-							A2(
-							elm$html$Html$p,
-							_List_Nil,
-							_List_fromArray(
-								[
-									A2(
-									elm$html$Html$a,
-									_List_fromArray(
-										[
-											elm$html$Html$Attributes$href(sweep.url)
-										]),
-									_List_fromArray(
-										[
-											elm$html$Html$text('Download pdf: ' + sweep.name)
-										]))
-								])),
-							A2(
-							elm$html$Html$table,
-							_List_Nil,
-							_List_fromArray(
-								[
-									A2(
-									elm$html$Html$thead,
-									_List_Nil,
-									_List_fromArray(
-										[
-											A2(
-											elm$html$Html$tr,
-											_List_Nil,
-											_List_fromArray(
-												[
-													A2(
-													elm$html$Html$th,
-													_List_fromArray(
-														[
-															elm$html$Html$Attributes$class('w5')
-														]),
-													_List_fromArray(
-														[
-															elm$html$Html$text('Address')
-														])),
-													A2(
-													elm$html$Html$th,
-													_List_Nil,
-													_List_fromArray(
-														[
-															elm$html$Html$text('Division')
-														])),
-													A2(
-													elm$html$Html$th,
-													_List_Nil,
-													_List_fromArray(
-														[
-															elm$html$Html$text('Location')
-														])),
-													A2(
-													elm$html$Html$th,
-													_List_Nil,
-													_List_fromArray(
-														[
-															elm$html$Html$text('Action Type')
-														])),
-													A2(
-													elm$html$Html$th,
-													_List_Nil,
-													_List_fromArray(
-														[
-															elm$html$Html$text('Comments')
-														]))
-												]))
-										])),
-									A2(
-									elm$html$Html$tbody,
-									_List_Nil,
-									A2(elm$core$List$map, author$project$Main$viewActivity, sweep.activities))
-								]))
+							elm$html$Html$Attributes$class('tc')
+						]),
+					_List_fromArray(
+						[
+							elm$html$Html$text('Loading')
 						]));
-			}
-		default:
-			var error = sweeps.a;
-			return A2(
-				elm$html$Html$div,
-				_List_fromArray(
-					[
-						elm$html$Html$Attributes$class('tc')
-					]),
-				_List_fromArray(
-					[
-						elm$html$Html$text(
-						'Error: ' + author$project$Main$errorToString(error))
-					]));
-	}
-};
+			case 'Success':
+				var sweep = sweeps.a;
+				var _n1 = sweep.activities;
+				if (!_n1.b) {
+					return A2(
+						elm$html$Html$div,
+						_List_fromArray(
+							[
+								elm$html$Html$Attributes$class('tc')
+							]),
+						_List_fromArray(
+							[
+								elm$html$Html$text('No sweeps loaded for today.')
+							]));
+				} else {
+					var dateString = A2(author$project$Main$getDate, sweep.date, zone);
+					var csvUrl = '/api/csv/' + dateString;
+					return A2(
+						elm$html$Html$div,
+						_List_Nil,
+						_List_fromArray(
+							[
+								A2(
+								elm$html$Html$p,
+								_List_Nil,
+								_List_fromArray(
+									[
+										A2(
+										elm$html$Html$a,
+										_List_fromArray(
+											[
+												elm$html$Html$Attributes$href(sweep.url)
+											]),
+										_List_fromArray(
+											[
+												elm$html$Html$text('Download pdf: ' + sweep.name)
+											])),
+										A2(
+										elm$html$Html$a,
+										_List_fromArray(
+											[
+												elm$html$Html$Attributes$class('mh2'),
+												elm$html$Html$Attributes$href(csvUrl)
+											]),
+										_List_fromArray(
+											[
+												elm$html$Html$text('Download csv: ' + sweep.name)
+											]))
+									])),
+								A2(
+								elm$html$Html$table,
+								_List_Nil,
+								_List_fromArray(
+									[
+										A2(
+										elm$html$Html$thead,
+										_List_Nil,
+										_List_fromArray(
+											[
+												A2(
+												elm$html$Html$tr,
+												_List_Nil,
+												_List_fromArray(
+													[
+														A2(
+														elm$html$Html$th,
+														_List_fromArray(
+															[
+																elm$html$Html$Attributes$class('w5')
+															]),
+														_List_fromArray(
+															[
+																elm$html$Html$text('Address')
+															])),
+														A2(
+														elm$html$Html$th,
+														_List_Nil,
+														_List_fromArray(
+															[
+																elm$html$Html$text('Division')
+															])),
+														A2(
+														elm$html$Html$th,
+														_List_Nil,
+														_List_fromArray(
+															[
+																elm$html$Html$text('Location')
+															])),
+														A2(
+														elm$html$Html$th,
+														_List_Nil,
+														_List_fromArray(
+															[
+																elm$html$Html$text('Action Type')
+															])),
+														A2(
+														elm$html$Html$th,
+														_List_Nil,
+														_List_fromArray(
+															[
+																elm$html$Html$text('Comments')
+															]))
+													]))
+											])),
+										A2(
+										elm$html$Html$tbody,
+										_List_Nil,
+										A2(elm$core$List$map, author$project$Main$viewActivity, sweep.activities))
+									]))
+							]));
+				}
+			default:
+				var error = sweeps.a;
+				return A2(
+					elm$html$Html$div,
+					_List_fromArray(
+						[
+							elm$html$Html$Attributes$class('tc')
+						]),
+					_List_fromArray(
+						[
+							elm$html$Html$text(
+							'Error: ' + author$project$Main$errorToString(error))
+						]));
+		}
+	});
 var author$project$Main$view = function (model) {
 	return A2(
 		elm$html$Html$div,
 		_List_Nil,
 		_List_fromArray(
 			[
-				A2(author$project$Main$viewDatePicker, model, model.time),
-				author$project$Main$viewSweeps(model.sweeps)
+				author$project$Main$viewDatePicker(model),
+				A2(author$project$Main$viewSweeps, model.zone, model.sweeps)
 			]));
 };
 var elm$browser$Browser$External = function (a) {
