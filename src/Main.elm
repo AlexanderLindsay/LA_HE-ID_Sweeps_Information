@@ -300,11 +300,11 @@ viewActivity activity =
 viewDayButton label msg =
   button [ onClick msg, class "btn" ] [ text label ]
 
-viewDatePicker model date =
+viewDatePicker model =
     case model.showDayPicker of
     False ->
         h1 [ class "flex justify-center flex-column" ] 
-          [ div [ class "tc" ] [ text <| "Sweeps for " ++ (viewHeaderTime date model.zone) ]
+          [ div [ class "tc" ] [ text <| "Sweeps for " ++ (viewHeaderTime model.time model.zone) ]
           , div [ class "flex justify-center" ] 
             [ viewDayButton "⇐ Previous Day" GoToPreviousDay
             , (case model.days of
@@ -342,8 +342,8 @@ viewDatePicker model date =
           ]
         ]
 
-viewSweeps : RemoteData.WebData SM.Sweeps -> Html Msg
-viewSweeps sweeps =
+viewSweeps : Time.Zone -> RemoteData.WebData SM.Sweeps -> Html Msg
+viewSweeps zone sweeps =
   case sweeps of
       RemoteData.NotAsked ->
         div [ class "tc" ] [ text "Loading" ]
@@ -353,8 +353,17 @@ viewSweeps sweeps =
           case sweep.activities of
             [] -> div [ class "tc" ] [ text "No sweeps loaded for today." ]
             _ ->
+              let
+                dateString =
+                  getDate sweep.date zone
+                csvUrl =
+                  "/api/csv/" ++ dateString
+              in
               div [ ] 
-                [ p [] [ a [ href sweep.url ] [ text <| "Download pdf: " ++ sweep.name ]]
+                [ p [] 
+                  [ a [ href sweep.url ] [ text <| "Download pdf: " ++ sweep.name ]
+                  , a [ class "mh2",  href csvUrl ] [ text <| "Download csv: " ++ sweep.name ]
+                  ]
                 , table [] [
                   thead [] [
                     tr [] [
@@ -393,8 +402,8 @@ errorToString err =
 
 view model =
   div []
-    [ viewDatePicker model model.time
-    , viewSweeps model.sweeps
+    [ viewDatePicker model
+    , viewSweeps model.zone model.sweeps
     ]
 
 subscriptions model = 
