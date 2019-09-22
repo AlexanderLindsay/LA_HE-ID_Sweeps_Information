@@ -1,7 +1,7 @@
 module SweepModels exposing (..)
 
 import Time
-import Json.Decode as Decode exposing (Decoder, int, string)
+import Json.Decode as Decode exposing (Decoder, int, string, bool)
 import Json.Decode.Extra as DecodeExtra
 import Json.Decode.Pipeline exposing (required, optional, hardcoded)
 
@@ -143,6 +143,8 @@ divisionDecoder =
 type Status
   = Approved
   | MissingLAHSASignature
+  | Authorized
+  | MissingAllSignatures
   | OtherStatus String
   
 statusToStr status =
@@ -151,6 +153,10 @@ statusToStr status =
     "Approved"
   MissingLAHSASignature ->
     "Missing LAHSA Signature"
+  MissingAllSignatures ->
+    "Missing All 3 Signatures"
+  Authorized ->
+    "Authorized"
   OtherStatus str -> str
 
 statusDecoder: Decoder Status
@@ -165,6 +171,10 @@ statusDecoder =
       Decode.succeed Approved
     "missing lahsa signature" ->
       Decode.succeed MissingLAHSASignature
+    "authorized" ->
+      Decode.succeed Authorized
+    "missing all 3 signatures" ->
+      Decode.succeed MissingAllSignatures
     s -> 
       Decode.succeed <| OtherStatus s
   )
@@ -191,6 +201,31 @@ divisionActivityDecoder =
   |> optional "location" (Decode.map Just locationTypeDecoder) Nothing
   |> required "comments" string
   |> required "cleaningTime" string
+  |> optional "division" (Decode.map Just divisionDecoder) Nothing
+  |> required "status" statusDecoder
+
+type alias FutureActivity =
+  { futureAction: Bool
+  , authNumber: String
+  , address: String
+  , crossStreetOne: String
+  , crossStreetTwo: String
+  , location: Maybe LocationType
+  , comments: String
+  , division: Maybe Division
+  , status: Status
+  }
+
+futureActivityDecoder: Decoder FutureActivity
+futureActivityDecoder =
+  Decode.succeed FutureActivity
+  |> required "futureAction" bool
+  |> required "authNumber" string
+  |> required "address" string
+  |> required "crossStreetOne" string
+  |> required "crossStreetTwo" string
+  |> optional "location" (Decode.map Just locationTypeDecoder) Nothing
+  |> required "comments" string
   |> optional "division" (Decode.map Just divisionDecoder) Nothing
   |> required "status" statusDecoder
 
@@ -239,19 +274,32 @@ maintenanceActivityDecoder =
 type Activity
   = Maintenance MaintenanceActivity
   | Division DivisionActivity
+  | Future FutureActivity
   
 activityDecoder : Decoder Activity
 activityDecoder =
   Decode.oneOf
     [ Decode.map Maintenance maintenanceActivityDecoder
     , Decode.map Division divisionActivityDecoder
+    , Decode.map Future futureActivityDecoder
     ]
-  
+
+type alias SweepsFile =
+  { url: String
+  , name: String
+  }
+
+sweepsFileDecoder : Decoder SweepsFile
+sweepsFileDecoder =
+  Decode.succeed SweepsFile
+  |> required "url" string
+  |> required "name" string
+
 type alias Sweeps =
   { date: Time.Posix
   , activities: List Activity
-  , url: String
-  , name: String
+  , currentFile: Maybe SweepsFile
+  , futureFile: Maybe SweepsFile
   }
 
 sweepsDecoder : Decoder Sweeps
@@ -259,5 +307,5 @@ sweepsDecoder =
   Decode.succeed Sweeps
   |> required "date" DecodeExtra.datetime
   |> required "activities" (Decode.list activityDecoder)
-  |> required "url" string
-  |> required "name" string
+  |> optional "currentFile" (Decode.map Just sweepsFileDecoder) Nothing
+  |> optional "futureFile" (Decode.map Just sweepsFileDecoder) Nothing
