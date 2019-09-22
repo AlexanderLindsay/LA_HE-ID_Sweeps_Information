@@ -98,6 +98,14 @@ module.exports = function run() {
 
     return true;
   }
+  
+  function isValidFuture(future) {
+    if(future.address === '') {
+      return false;
+    }
+    
+    return true;
+  }
 
   function isValidMaintenance(maintenance) {
     if(maintenance.address === '') {
@@ -155,8 +163,18 @@ module.exports = function run() {
         }
 
         function parseData(rows) {
-          const rawDate = (rows[1] || [])[0].text || '';
-          const momentDate = moment.tz(rawDate, 'dddd, MMMM Do [@] h:mm', 'America/Los_Angeles');
+          let momentDate;
+          let isFuture = false;
+          const firstRow = (rows[0] ||[])[0].text || '';
+          if( firstRow === 'LA Sanitation') {
+            const rawDate = (rows[3] || [])[0].text || '';
+            isFuture = true;
+            momentDate = moment.tz(rawDate, 'MM/DD/YYYY', 'America/Los_Angeles');
+          } else {
+            const rawDate = (rows[1] || [])[0].text || '';
+            momentDate = moment.tz(rawDate, 'dddd, MMMM Do [@] h:mm', 'America/Los_Angeles');
+          }
+          
           const dateId = momentDate.format("YYYY-MM-DD");
           const date = momentDate.startOf('date').toISOString();
 
@@ -166,6 +184,7 @@ module.exports = function run() {
           let invalidRows = [];
 
           const divisionIndexMap = [ 'authNumber', 'address', 'crossStreetOne', 'crossStreetTwo', 'location', 'comments', 'cleaningTime', 'division', 'status' ];
+          const futureIndexMap = [ 'authNumber', 'address', 'crossStreetOne', 'crossStreetTwo', 'location', 'comments', 'division', 'status' ];
           const maintenanceIndexMap = [ 'idTeam', 'address', 'location', 'comments', 'division', 'status' ];
 
           for(let row of rows) {
@@ -181,9 +200,13 @@ module.exports = function run() {
                 mode = 'maintenance';
                 headers = row;
                 continue;
+              } else if (row[0].text === 'Authorization#') {
+                mode = 'future';
+                headers = row.filter(c => c.text !== 'Auth Address/');
+                continue;
               }
 
-              if(mode === 'division') {
+              if(mode === 'division' ) {
 
                 const division = 
                       { authNumber: ''
@@ -203,6 +226,30 @@ module.exports = function run() {
                   data.push(division);
                 } else {
                   invalidRows.push(division);
+                }
+                continue;
+              }
+            
+              if(mode === 'future' ) {
+
+                const future = 
+                      { futureAction: true
+                      , authNumber: ''
+                      , address: ''
+                      , crossStreetOne: ''
+                      , crossStreetTwo: ''
+                      , location: ''
+                      , comments: ''
+                      , division: ''
+                      , status: ''
+                      };
+
+                mapRowToColumns(mode, future, futureIndexMap, headers, row);
+
+                if(isValidFuture(future)) {
+                  data.push(future);
+                } else {
+                  invalidRows.push(future);
                 }
                 continue;
               }
@@ -228,30 +275,45 @@ module.exports = function run() {
               }
           }
 
-          return { dateId, date, activities: data, invalid: invalidRows };
+          return { dateId, date, activities: data, invalid: invalidRows, isFuture: isFuture };
         }
 
         lastPromise.then(() => {
           const data = parseData(rows);
+          console.log(asset.name);
 
           const fileData = JSON.stringify({ date: data.date, activities: data.activities, url: asset.url, name: asset.name });
-
-          fs.writeFile('./data/' + data.dateId + '.json', 
+          
+          fs.mkdir('./data', null, function(err) {
+            if (err && err.code !== 'EEXIST') {
+              console.log('Error creating data directory: ', err);
+              return;
+            }
+            
+            fs.writeFile(`./data/${data.dateId}${data.isFuture ? "-future" : ""}.json`, 
                fileData, 
                (err) => {
                   if (err) throw err;
                   console.log('The file has been saved!');
-              });
+            });
+          });
+          
+          fs.mkdir('./invalid', null, function(err) {
+            if (err && err.code !== 'EEXIST') {
+              console.log('Error creating invalid directory: ', err);
+              return;
+            }
+            
+            const fileDataInvalid = JSON.stringify({ date: data.date, invalid: data.invalid});
 
-          const fileDataInvalid = JSON.stringify({ date: data.date, invalid: data.invalid});
-
-          fs.writeFile('./invalid/' + data.dateId + '-invalid.json', 
+            fs.writeFile(`./invalid/${data.dateId}-invalid${data.isFuture ? "-future" : ""}.json`, 
                fileDataInvalid, 
                (err) => {
                   if (err) throw err;
                   console.log('The file of invalid records has been saved!');
               });
-
+          });
+          
           fs.closeSync(fs.openSync(changeMarkerFilePath, 'w'));
         });
 

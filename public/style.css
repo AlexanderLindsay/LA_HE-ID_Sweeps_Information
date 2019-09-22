@@ -69,3 +69,8 @@ h1 button {
   border-color: #ddd;
   background-color: #fff;
 }
+
+.unconfirmed {
+  font-weight: bold;
+  color: #FF4136;
+}

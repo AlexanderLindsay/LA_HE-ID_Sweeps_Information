@@ -22,6 +22,7 @@ type alias Model =
   , selectedDay: Maybe String
   , showDayPicker: Bool
   , sweeps: RemoteData.WebData SM.Sweeps
+  , showUnconfirmed: Bool
   }
 
 type Msg
@@ -35,6 +36,7 @@ type Msg
   | GoToNextDay
   | ChangeDay
   | CancelChangeDay
+  | SetShowUnconfirmed Bool
 
 getDays : Cmd Msg
 getDays =
@@ -59,6 +61,7 @@ init _ =
     , selectedDay = Nothing
     , showDayPicker = False
     , sweeps = RemoteData.NotAsked
+    , showUnconfirmed = True
     }
   , Cmd.batch 
     [ Task.perform SetTimeZone Time.here
@@ -181,6 +184,10 @@ update msg model =
     in
     ( model
     , getSweeps time model.zone )
+  SetShowUnconfirmed value ->
+    ( { model | showUnconfirmed = value }
+    , Cmd.none
+    )
 
 toIntegerMonth month =
   case month of
@@ -276,27 +283,45 @@ viewActivity : SM.Activity -> Html Msg
 viewActivity activity =
   case activity of
     SM.Maintenance ma ->
-      tr [] [
-        td [] [ text ma.address ],
-        td [] [ text <| Maybe.withDefault "" <| Maybe.map SM.divisionToStr ma.division ],
-        td [] [ text <| Maybe.withDefault "" <| Maybe.map SM.locationToStr ma.location ],
-        td [] [ text "Illegal Dump" ],
-        td [] [ text ma.comments ]
-      ]
+      tr [] 
+        [ td [] [ text ma.address ]
+        , td [] [ text <| Maybe.withDefault "" <| Maybe.map SM.divisionToStr ma.division ]
+        , td [] [ text <| Maybe.withDefault "" <| Maybe.map SM.locationToStr ma.location ]
+        , td [] [ text "Illegal Dump" ]
+        , td [] [ text ma.comments ]
+        , td [] [ text <| SM.maintenanceStatusToStr ma.status ]
+        ]
     SM.Division da ->
-      tr [] [
-        td [] 
-          [ div [] [ text <| da.address ]
-          , div [] [ text "with cross streets:" ]
-          , div [] [ text da.crossStreetOne ]
-          , div [] [ text da.crossStreetTwo ]
-          ],
-        td [] [ text <| Maybe.withDefault "" <| Maybe.map SM.divisionToStr da.division ],
-        td [] [ text <| Maybe.withDefault "" <| Maybe.map SM.locationToStr da.location ],
-        td [] [ text "Sweep" ],
-        td [] [ text da.comments ]
-      ]
-
+      tr []
+        [ td [] 
+            [ div [] [ text <| da.address ]
+            , div [] [ text "with cross streets:" ]
+            , div [] [ text da.crossStreetOne ]
+            , div [] [ text da.crossStreetTwo ]
+            ]
+        , td [] [ text <| Maybe.withDefault "" <| Maybe.map SM.divisionToStr da.division ]
+        , td [] [ text <| Maybe.withDefault "" <| Maybe.map SM.locationToStr da.location ]
+        , td [] [ text "Sweep" ]
+        , td [] [ text da.comments ]
+        , td [] [ text <| SM.statusToStr da.status ]
+        ]
+    SM.Future fa ->
+      tr [ ]
+        [ td [] 
+            [ div [] 
+              [ div [ class "unconfirmed" ] [ text "Unconfirmed" ]
+              , text <| fa.address
+              ]
+            , div [] [ text "with cross streets:" ]
+            , div [] [ text fa.crossStreetOne ]
+            , div [] [ text fa.crossStreetTwo ]
+            ]
+        , td [] [ text <| Maybe.withDefault "" <| Maybe.map SM.divisionToStr fa.division ]
+        , td [] [ text <| Maybe.withDefault "" <| Maybe.map SM.locationToStr fa.location ]
+        , td [ class "unconfirmed" ] [ text "Potential Future Sweep" ]
+        , td [] [ text fa.comments ]
+        , td [] [ text <| SM.statusToStr fa.status ]
+        ]
 viewDayButton label msg =
   button [ onClick msg, class "btn" ] [ text label ]
 
@@ -342,8 +367,15 @@ viewDatePicker model =
           ]
         ]
 
-viewSweeps : Time.Zone -> RemoteData.WebData SM.Sweeps -> Html Msg
-viewSweeps zone sweeps =
+viewSweepFile : String -> Maybe SM.SweepsFile -> Html Msg
+viewSweepFile label sweepsFile  =
+  case sweepsFile of
+  Nothing -> text ""
+  Just file ->
+    a [ href file.url ] [ text <| "Download " ++ label ++ " pdf: " ++ file.name ]
+
+viewSweeps : Bool -> Time.Zone -> RemoteData.WebData SM.Sweeps -> Html Msg
+viewSweeps showUnconfirmed zone sweeps =
   case sweeps of
       RemoteData.NotAsked ->
         div [ class "tc" ] [ text "Loading" ]
@@ -361,21 +393,32 @@ viewSweeps zone sweeps =
               in
               div [ ] 
                 [ p [] 
-                  [ a [ href sweep.url ] [ text <| "Download pdf: " ++ sweep.name ]
-                  , a [ class "mh2",  href csvUrl ] [ text <| "Download csv: " ++ sweep.name ]
+                  [ viewSweepFile "Confirmed Sweeps" sweep.currentFile
+                  , viewSweepFile "Pending Sweeps" sweep.futureFile
+                  , a [ class "mh2",  href csvUrl ] [ text <| "Download csv" ]
                   ]
+                , viewFilter showUnconfirmed
                 , table [] [
                   thead [] [
-                    tr [] [
-                      th [ class "w5" ] [ text "Address" ],
-                      th [] [ text "Division" ],
-                      th [] [ text "Location" ],
-                      th [] [ text "Action Type" ],
-                      th [] [ text "Comments" ]
-                    ]
+                    tr []
+                      [ th [ class "w5" ] [ text "Address" ]
+                      , th [] [ text "Division" ]
+                      , th [] [ text "Location" ]
+                      , th [] [ text "Action Type" ]
+                      , th [] [ text "Comments" ]
+                      , th [] [ text "Status" ]
+                      ]
                   ],
                   tbody []
                     (sweep.activities
+                    |> List.filter (\a ->
+                      case showUnconfirmed of
+                      True -> True
+                      False ->
+                        case a of
+                        SM.Future _ -> False
+                        _ -> True
+                    )
                     |> List.map viewActivity)
                   ]
                 ]
@@ -400,10 +443,16 @@ errorToString err =
         Http.BadUrl url ->
             "Malformed url: " ++ url
 
+viewFilter showUnconfirmed =
+  label [] 
+    [ text "Show Unconfirmed Sweeps"
+    , input [ type_ "checkbox", checked showUnconfirmed, onCheck SetShowUnconfirmed, class "ml3" ] []
+    ]
+
 view model =
   div []
     [ viewDatePicker model
-    , viewSweeps model.zone model.sweeps
+    , viewSweeps model.showUnconfirmed model.zone model.sweeps
     ]
 
 subscriptions model = 
