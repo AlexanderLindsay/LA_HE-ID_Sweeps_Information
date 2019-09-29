@@ -6209,6 +6209,7 @@ var author$project$Main$init = function (_n0) {
 			showUnconfirmed: true,
 			sweeps: krisajenkins$remotedata$RemoteData$NotAsked,
 			time: elm$time$Time$millisToPosix(0),
+			today: elm$time$Time$millisToPosix(0),
 			zone: elm$time$Time$utc
 		},
 		elm$core$Platform$Cmd$batch(
@@ -7663,6 +7664,27 @@ var author$project$Main$posixToString = function (posix) {
 	return elm$core$String$fromInt(
 		elm$time$Time$posixToMillis(posix));
 };
+var elm$core$List$any = F2(
+	function (isOkay, list) {
+		any:
+		while (true) {
+			if (!list.b) {
+				return false;
+			} else {
+				var x = list.a;
+				var xs = list.b;
+				if (isOkay(x)) {
+					return true;
+				} else {
+					var $temp$isOkay = isOkay,
+						$temp$list = xs;
+					isOkay = $temp$isOkay;
+					list = $temp$list;
+					continue any;
+				}
+			}
+		}
+	});
 var elm$core$List$head = function (list) {
 	if (list.b) {
 		var x = list.a;
@@ -7681,7 +7703,7 @@ var author$project$Main$update = F2(
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{time: newTime}),
+						{time: newTime, today: newTime}),
 					A2(author$project$Main$getSweeps, newTime, model.zone));
 			case 'SetTimeZone':
 				var newZone = msg.a;
@@ -7720,21 +7742,42 @@ var author$project$Main$update = F2(
 						return elm$core$Maybe$Nothing;
 					}
 				}();
+				var hasCurrent = function () {
+					if (response.$ === 'Success') {
+						var sweeps = response.a;
+						return A2(
+							elm$core$List$any,
+							function (a) {
+								switch (a.$) {
+									case 'Maintenance':
+										return true;
+									case 'Division':
+										return true;
+									default:
+										return false;
+								}
+							},
+							sweeps.activities);
+					} else {
+						return false;
+					}
+				}();
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
 						{
+							showUnconfirmed: !hasCurrent,
 							sweeps: response,
 							time: A2(elm$core$Maybe$withDefault, model.time, newTime)
 						}),
 					elm$core$Platform$Cmd$none);
 			case 'ShowDayPicker':
 				var currentlySelectedDay = function () {
-					var _n3 = model.sweeps;
-					if (_n3.$ === 'Success') {
-						var sweep = _n3.a;
-						var _n4 = sweep.activities;
-						if (!_n4.b) {
+					var _n5 = model.sweeps;
+					if (_n5.$ === 'Success') {
+						var sweep = _n5.a;
+						var _n6 = sweep.activities;
+						if (!_n6.b) {
 							return model.firstDay;
 						} else {
 							return elm$core$Maybe$Just(
@@ -7765,9 +7808,9 @@ var author$project$Main$update = F2(
 						{selectedDay: elm$core$Maybe$Nothing, showDayPicker: false}),
 					elm$core$Platform$Cmd$none);
 			case 'ChangeDay':
-				var _n5 = A2(author$project$Main$getSweepsForDay, model.zone, model.selectedDay);
-				var newTime = _n5.a;
-				var sweepsCmd = _n5.b;
+				var _n7 = A2(author$project$Main$getSweepsForDay, model.zone, model.selectedDay);
+				var newTime = _n7.a;
+				var sweepsCmd = _n7.b;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
@@ -8276,254 +8319,257 @@ var author$project$SweepModels$statusToStr = function (status) {
 };
 var elm$html$Html$td = _VirtualDom_node('td');
 var elm$html$Html$tr = _VirtualDom_node('tr');
-var author$project$Main$viewActivity = function (activity) {
-	switch (activity.$) {
-		case 'Maintenance':
-			var ma = activity.a;
-			return A2(
-				elm$html$Html$tr,
-				_List_Nil,
-				_List_fromArray(
-					[
-						A2(
-						elm$html$Html$td,
-						_List_Nil,
-						_List_fromArray(
-							[
-								elm$html$Html$text(ma.address)
-							])),
-						A2(
-						elm$html$Html$td,
-						_List_Nil,
-						_List_fromArray(
-							[
-								elm$html$Html$text(
-								A2(
-									elm$core$Maybe$withDefault,
-									'',
-									A2(elm$core$Maybe$map, author$project$SweepModels$divisionToStr, ma.division)))
-							])),
-						A2(
-						elm$html$Html$td,
-						_List_Nil,
-						_List_fromArray(
-							[
-								elm$html$Html$text(
-								A2(
-									elm$core$Maybe$withDefault,
-									'',
-									A2(elm$core$Maybe$map, author$project$SweepModels$locationToStr, ma.location)))
-							])),
-						A2(
-						elm$html$Html$td,
-						_List_Nil,
-						_List_fromArray(
-							[
-								elm$html$Html$text('Illegal Dump')
-							])),
-						A2(
-						elm$html$Html$td,
-						_List_Nil,
-						_List_fromArray(
-							[
-								elm$html$Html$text(ma.comments)
-							])),
-						A2(
-						elm$html$Html$td,
-						_List_Nil,
-						_List_fromArray(
-							[
-								elm$html$Html$text(
-								author$project$SweepModels$maintenanceStatusToStr(ma.status))
-							]))
-					]));
-		case 'Division':
-			var da = activity.a;
-			return A2(
-				elm$html$Html$tr,
-				_List_Nil,
-				_List_fromArray(
-					[
-						A2(
-						elm$html$Html$td,
-						_List_Nil,
-						_List_fromArray(
-							[
-								A2(
-								elm$html$Html$div,
-								_List_Nil,
-								_List_fromArray(
-									[
-										elm$html$Html$text(da.address)
-									])),
-								A2(
-								elm$html$Html$div,
-								_List_Nil,
-								_List_fromArray(
-									[
-										elm$html$Html$text('with cross streets:')
-									])),
-								A2(
-								elm$html$Html$div,
-								_List_Nil,
-								_List_fromArray(
-									[
-										elm$html$Html$text(da.crossStreetOne)
-									])),
-								A2(
-								elm$html$Html$div,
-								_List_Nil,
-								_List_fromArray(
-									[
-										elm$html$Html$text(da.crossStreetTwo)
-									]))
-							])),
-						A2(
-						elm$html$Html$td,
-						_List_Nil,
-						_List_fromArray(
-							[
-								elm$html$Html$text(
-								A2(
-									elm$core$Maybe$withDefault,
-									'',
-									A2(elm$core$Maybe$map, author$project$SweepModels$divisionToStr, da.division)))
-							])),
-						A2(
-						elm$html$Html$td,
-						_List_Nil,
-						_List_fromArray(
-							[
-								elm$html$Html$text(
-								A2(
-									elm$core$Maybe$withDefault,
-									'',
-									A2(elm$core$Maybe$map, author$project$SweepModels$locationToStr, da.location)))
-							])),
-						A2(
-						elm$html$Html$td,
-						_List_Nil,
-						_List_fromArray(
-							[
-								elm$html$Html$text('Sweep')
-							])),
-						A2(
-						elm$html$Html$td,
-						_List_Nil,
-						_List_fromArray(
-							[
-								elm$html$Html$text(da.comments)
-							])),
-						A2(
-						elm$html$Html$td,
-						_List_Nil,
-						_List_fromArray(
-							[
-								elm$html$Html$text(
-								author$project$SweepModels$statusToStr(da.status))
-							]))
-					]));
-		default:
-			var fa = activity.a;
-			return A2(
-				elm$html$Html$tr,
-				_List_Nil,
-				_List_fromArray(
-					[
-						A2(
-						elm$html$Html$td,
-						_List_Nil,
-						_List_fromArray(
-							[
-								A2(
-								elm$html$Html$div,
-								_List_Nil,
-								_List_fromArray(
-									[
-										A2(
-										elm$html$Html$div,
-										_List_fromArray(
-											[
-												elm$html$Html$Attributes$class('unconfirmed')
-											]),
-										_List_fromArray(
-											[
-												elm$html$Html$text('Unconfirmed')
-											])),
-										elm$html$Html$text(fa.address)
-									])),
-								A2(
-								elm$html$Html$div,
-								_List_Nil,
-								_List_fromArray(
-									[
-										elm$html$Html$text('with cross streets:')
-									])),
-								A2(
-								elm$html$Html$div,
-								_List_Nil,
-								_List_fromArray(
-									[
-										elm$html$Html$text(fa.crossStreetOne)
-									])),
-								A2(
-								elm$html$Html$div,
-								_List_Nil,
-								_List_fromArray(
-									[
-										elm$html$Html$text(fa.crossStreetTwo)
-									]))
-							])),
-						A2(
-						elm$html$Html$td,
-						_List_Nil,
-						_List_fromArray(
-							[
-								elm$html$Html$text(
-								A2(
-									elm$core$Maybe$withDefault,
-									'',
-									A2(elm$core$Maybe$map, author$project$SweepModels$divisionToStr, fa.division)))
-							])),
-						A2(
-						elm$html$Html$td,
-						_List_Nil,
-						_List_fromArray(
-							[
-								elm$html$Html$text(
-								A2(
-									elm$core$Maybe$withDefault,
-									'',
-									A2(elm$core$Maybe$map, author$project$SweepModels$locationToStr, fa.location)))
-							])),
-						A2(
-						elm$html$Html$td,
-						_List_fromArray(
-							[
-								elm$html$Html$Attributes$class('unconfirmed')
-							]),
-						_List_fromArray(
-							[
-								elm$html$Html$text('Potential Future Sweep')
-							])),
-						A2(
-						elm$html$Html$td,
-						_List_Nil,
-						_List_fromArray(
-							[
-								elm$html$Html$text(fa.comments)
-							])),
-						A2(
-						elm$html$Html$td,
-						_List_Nil,
-						_List_fromArray(
-							[
-								elm$html$Html$text(
-								author$project$SweepModels$statusToStr(fa.status))
-							]))
-					]));
-	}
-};
+var author$project$Main$viewActivity = F2(
+	function (isFuture, activity) {
+		switch (activity.$) {
+			case 'Maintenance':
+				var ma = activity.a;
+				return A2(
+					elm$html$Html$tr,
+					_List_Nil,
+					_List_fromArray(
+						[
+							A2(
+							elm$html$Html$td,
+							_List_Nil,
+							_List_fromArray(
+								[
+									elm$html$Html$text(ma.address)
+								])),
+							A2(
+							elm$html$Html$td,
+							_List_Nil,
+							_List_fromArray(
+								[
+									elm$html$Html$text(
+									A2(
+										elm$core$Maybe$withDefault,
+										'',
+										A2(elm$core$Maybe$map, author$project$SweepModels$divisionToStr, ma.division)))
+								])),
+							A2(
+							elm$html$Html$td,
+							_List_Nil,
+							_List_fromArray(
+								[
+									elm$html$Html$text(
+									A2(
+										elm$core$Maybe$withDefault,
+										'',
+										A2(elm$core$Maybe$map, author$project$SweepModels$locationToStr, ma.location)))
+								])),
+							A2(
+							elm$html$Html$td,
+							_List_Nil,
+							_List_fromArray(
+								[
+									elm$html$Html$text('Illegal Dump')
+								])),
+							A2(
+							elm$html$Html$td,
+							_List_Nil,
+							_List_fromArray(
+								[
+									elm$html$Html$text(ma.comments)
+								])),
+							A2(
+							elm$html$Html$td,
+							_List_Nil,
+							_List_fromArray(
+								[
+									elm$html$Html$text(
+									author$project$SweepModels$maintenanceStatusToStr(ma.status))
+								]))
+						]));
+			case 'Division':
+				var da = activity.a;
+				return A2(
+					elm$html$Html$tr,
+					_List_Nil,
+					_List_fromArray(
+						[
+							A2(
+							elm$html$Html$td,
+							_List_Nil,
+							_List_fromArray(
+								[
+									A2(
+									elm$html$Html$div,
+									_List_Nil,
+									_List_fromArray(
+										[
+											elm$html$Html$text(da.address)
+										])),
+									A2(
+									elm$html$Html$div,
+									_List_Nil,
+									_List_fromArray(
+										[
+											elm$html$Html$text('with cross streets:')
+										])),
+									A2(
+									elm$html$Html$div,
+									_List_Nil,
+									_List_fromArray(
+										[
+											elm$html$Html$text(da.crossStreetOne)
+										])),
+									A2(
+									elm$html$Html$div,
+									_List_Nil,
+									_List_fromArray(
+										[
+											elm$html$Html$text(da.crossStreetTwo)
+										]))
+								])),
+							A2(
+							elm$html$Html$td,
+							_List_Nil,
+							_List_fromArray(
+								[
+									elm$html$Html$text(
+									A2(
+										elm$core$Maybe$withDefault,
+										'',
+										A2(elm$core$Maybe$map, author$project$SweepModels$divisionToStr, da.division)))
+								])),
+							A2(
+							elm$html$Html$td,
+							_List_Nil,
+							_List_fromArray(
+								[
+									elm$html$Html$text(
+									A2(
+										elm$core$Maybe$withDefault,
+										'',
+										A2(elm$core$Maybe$map, author$project$SweepModels$locationToStr, da.location)))
+								])),
+							A2(
+							elm$html$Html$td,
+							_List_Nil,
+							_List_fromArray(
+								[
+									elm$html$Html$text('Sweep')
+								])),
+							A2(
+							elm$html$Html$td,
+							_List_Nil,
+							_List_fromArray(
+								[
+									elm$html$Html$text(da.comments)
+								])),
+							A2(
+							elm$html$Html$td,
+							_List_Nil,
+							_List_fromArray(
+								[
+									elm$html$Html$text(
+									author$project$SweepModels$statusToStr(da.status))
+								]))
+						]));
+			default:
+				var fa = activity.a;
+				return A2(
+					elm$html$Html$tr,
+					_List_Nil,
+					_List_fromArray(
+						[
+							A2(
+							elm$html$Html$td,
+							_List_Nil,
+							_List_fromArray(
+								[
+									A2(
+									elm$html$Html$div,
+									_List_Nil,
+									_List_fromArray(
+										[
+											A2(
+											elm$html$Html$div,
+											_List_fromArray(
+												[
+													elm$html$Html$Attributes$class('unconfirmed')
+												]),
+											_List_fromArray(
+												[
+													elm$html$Html$text(
+													isFuture ? 'Unconfirmed' : 'Outdated')
+												])),
+											elm$html$Html$text(fa.address)
+										])),
+									A2(
+									elm$html$Html$div,
+									_List_Nil,
+									_List_fromArray(
+										[
+											elm$html$Html$text('with cross streets:')
+										])),
+									A2(
+									elm$html$Html$div,
+									_List_Nil,
+									_List_fromArray(
+										[
+											elm$html$Html$text(fa.crossStreetOne)
+										])),
+									A2(
+									elm$html$Html$div,
+									_List_Nil,
+									_List_fromArray(
+										[
+											elm$html$Html$text(fa.crossStreetTwo)
+										]))
+								])),
+							A2(
+							elm$html$Html$td,
+							_List_Nil,
+							_List_fromArray(
+								[
+									elm$html$Html$text(
+									A2(
+										elm$core$Maybe$withDefault,
+										'',
+										A2(elm$core$Maybe$map, author$project$SweepModels$divisionToStr, fa.division)))
+								])),
+							A2(
+							elm$html$Html$td,
+							_List_Nil,
+							_List_fromArray(
+								[
+									elm$html$Html$text(
+									A2(
+										elm$core$Maybe$withDefault,
+										'',
+										A2(elm$core$Maybe$map, author$project$SweepModels$locationToStr, fa.location)))
+								])),
+							A2(
+							elm$html$Html$td,
+							_List_fromArray(
+								[
+									elm$html$Html$Attributes$class('unconfirmed')
+								]),
+							_List_fromArray(
+								[
+									elm$html$Html$text(
+									isFuture ? 'Unconfirmed' : 'Outdated')
+								])),
+							A2(
+							elm$html$Html$td,
+							_List_Nil,
+							_List_fromArray(
+								[
+									elm$html$Html$text(fa.comments)
+								])),
+							A2(
+							elm$html$Html$td,
+							_List_Nil,
+							_List_fromArray(
+								[
+									elm$html$Html$text(
+									author$project$SweepModels$statusToStr(fa.status))
+								]))
+						]));
+		}
+	});
 var author$project$Main$SetShowUnconfirmed = function (a) {
 	return {$: 'SetShowUnconfirmed', a: a};
 };
@@ -8541,25 +8587,27 @@ var elm$html$Html$Events$onCheck = function (tagger) {
 		'change',
 		A2(elm$json$Json$Decode$map, tagger, elm$html$Html$Events$targetChecked));
 };
-var author$project$Main$viewFilter = function (showUnconfirmed) {
-	return A2(
-		elm$html$Html$label,
-		_List_Nil,
-		_List_fromArray(
-			[
-				elm$html$Html$text('Show Unconfirmed Sweeps'),
-				A2(
-				elm$html$Html$input,
-				_List_fromArray(
-					[
-						elm$html$Html$Attributes$type_('checkbox'),
-						elm$html$Html$Attributes$checked(showUnconfirmed),
-						elm$html$Html$Events$onCheck(author$project$Main$SetShowUnconfirmed),
-						elm$html$Html$Attributes$class('ml3')
-					]),
-				_List_Nil)
-			]));
-};
+var author$project$Main$viewFilter = F2(
+	function (showUnconfirmed, isFuture) {
+		return A2(
+			elm$html$Html$label,
+			_List_Nil,
+			_List_fromArray(
+				[
+					elm$html$Html$text(
+					isFuture ? 'Show Unconfirmed Sweeps' : 'Show Outdated Sweeps'),
+					A2(
+					elm$html$Html$input,
+					_List_fromArray(
+						[
+							elm$html$Html$Attributes$type_('checkbox'),
+							elm$html$Html$Attributes$checked(showUnconfirmed),
+							elm$html$Html$Events$onCheck(author$project$Main$SetShowUnconfirmed),
+							elm$html$Html$Attributes$class('ml3')
+						]),
+					_List_Nil)
+				]));
+	});
 var elm$html$Html$a = _VirtualDom_node('a');
 var elm$html$Html$Attributes$href = function (url) {
 	return A2(
@@ -8577,7 +8625,8 @@ var author$project$Main$viewSweepFile = F2(
 				elm$html$Html$a,
 				_List_fromArray(
 					[
-						elm$html$Html$Attributes$href(file.url)
+						elm$html$Html$Attributes$href(file.url),
+						elm$html$Html$Attributes$class('ml2')
 					]),
 				_List_fromArray(
 					[
@@ -8590,8 +8639,8 @@ var elm$html$Html$table = _VirtualDom_node('table');
 var elm$html$Html$tbody = _VirtualDom_node('tbody');
 var elm$html$Html$th = _VirtualDom_node('th');
 var elm$html$Html$thead = _VirtualDom_node('thead');
-var author$project$Main$viewSweeps = F3(
-	function (showUnconfirmed, zone, sweeps) {
+var author$project$Main$viewSweeps = F4(
+	function (showUnconfirmed, isFuture, zone, sweeps) {
 		switch (sweeps.$) {
 			case 'NotAsked':
 				return A2(
@@ -8643,7 +8692,10 @@ var author$project$Main$viewSweeps = F3(
 								_List_fromArray(
 									[
 										A2(author$project$Main$viewSweepFile, 'Confirmed Sweeps', sweep.currentFile),
-										A2(author$project$Main$viewSweepFile, 'Pending Sweeps', sweep.futureFile),
+										A2(
+										author$project$Main$viewSweepFile,
+										isFuture ? 'Pending Sweeps' : 'Outdated Sweeps',
+										sweep.futureFile),
 										A2(
 										elm$html$Html$a,
 										_List_fromArray(
@@ -8656,7 +8708,7 @@ var author$project$Main$viewSweeps = F3(
 												elm$html$Html$text('Download csv')
 											]))
 									])),
-								author$project$Main$viewFilter(showUnconfirmed),
+								A2(author$project$Main$viewFilter, showUnconfirmed, isFuture),
 								A2(
 								elm$html$Html$table,
 								_List_Nil,
@@ -8698,7 +8750,10 @@ var author$project$Main$viewSweeps = F3(
 															])),
 														A2(
 														elm$html$Html$th,
-														_List_Nil,
+														_List_fromArray(
+															[
+																elm$html$Html$Attributes$class('w3')
+															]),
 														_List_fromArray(
 															[
 																elm$html$Html$text('Action Type')
@@ -8724,7 +8779,7 @@ var author$project$Main$viewSweeps = F3(
 										_List_Nil,
 										A2(
 											elm$core$List$map,
-											author$project$Main$viewActivity,
+											author$project$Main$viewActivity(isFuture),
 											A2(
 												elm$core$List$filter,
 												function (a) {
@@ -8758,13 +8813,16 @@ var author$project$Main$viewSweeps = F3(
 		}
 	});
 var author$project$Main$view = function (model) {
+	var today = elm$time$Time$posixToMillis(model.today);
+	var selected = elm$time$Time$posixToMillis(model.time);
+	var isFuture = _Utils_cmp(selected, today) > 0;
 	return A2(
 		elm$html$Html$div,
 		_List_Nil,
 		_List_fromArray(
 			[
 				author$project$Main$viewDatePicker(model),
-				A3(author$project$Main$viewSweeps, model.showUnconfirmed, model.zone, model.sweeps)
+				A4(author$project$Main$viewSweeps, model.showUnconfirmed, isFuture, model.zone, model.sweeps)
 			]));
 };
 var elm$browser$Browser$External = function (a) {
