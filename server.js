@@ -3,7 +3,7 @@
 
 // init project
 const express = require('express');
-var moment = require('moment-timezone');
+const moment = require('moment-timezone');
 const app = express();
 const fs = require('fs');
 
