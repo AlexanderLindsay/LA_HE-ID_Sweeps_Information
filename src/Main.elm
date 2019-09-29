@@ -17,6 +17,7 @@ import DayModels as DM
 type alias Model = 
   { zone: Zone
   , time: Posix
+  , today: Posix
   , days: RemoteData.WebData (List DM.Day)
   , firstDay: Maybe String
   , selectedDay: Maybe String
@@ -56,6 +57,7 @@ init : () -> (Model, Cmd Msg)
 init _ =
   ( { zone = Time.utc 
     , time = (Time.millisToPosix 0)
+    , today = (Time.millisToPosix 0)
     , days = RemoteData.NotAsked
     , firstDay = Nothing
     , selectedDay = Nothing
@@ -97,7 +99,7 @@ getSweepsForDay zone day =
 update msg model =
   case msg of
   SetTime newTime ->
-    ( {model | time = newTime }
+    ( {model | time = newTime, today = newTime }
     , getSweeps newTime model.zone
     )
   SetTimeZone newZone ->
@@ -127,8 +129,19 @@ update msg model =
         RemoteData.Success sweeps ->
           Just sweeps.date
         _ -> Nothing
+      hasCurrent =
+        case response of
+        RemoteData.Success sweeps ->
+          sweeps.activities
+          |> List.any (\a ->
+            case a of
+            SM.Maintenance _ -> True
+            SM.Division _ -> True
+            SM.Future _ -> False
+          )
+        _ -> False
     in
-    ( { model | sweeps = response, time = Maybe.withDefault model.time newTime }
+    ( { model | sweeps = response, time = Maybe.withDefault model.time newTime, showUnconfirmed = not hasCurrent }
     , Cmd.none
     )
   ShowDayPicker ->
@@ -279,8 +292,8 @@ viewHeaderTime time zone =
   in
   (weekDay ++ ", " ++ month ++ " " ++ day ++ " " ++ year)
 
-viewActivity : SM.Activity -> Html Msg
-viewActivity activity =
+viewActivity : Bool -> SM.Activity -> Html Msg
+viewActivity isFuture activity =
   case activity of
     SM.Maintenance ma ->
       tr [] 
@@ -309,7 +322,7 @@ viewActivity activity =
       tr [ ]
         [ td [] 
             [ div [] 
-              [ div [ class "unconfirmed" ] [ text "Unconfirmed" ]
+              [ div [ class "unconfirmed" ] [ text (if isFuture then "Unconfirmed" else "Outdated") ]
               , text <| fa.address
               ]
             , div [] [ text "with cross streets:" ]
@@ -318,7 +331,7 @@ viewActivity activity =
             ]
         , td [] [ text <| Maybe.withDefault "" <| Maybe.map SM.divisionToStr fa.division ]
         , td [] [ text <| Maybe.withDefault "" <| Maybe.map SM.locationToStr fa.location ]
-        , td [ class "unconfirmed" ] [ text "Potential Future Sweep" ]
+        , td [ class "unconfirmed" ] [ text (if isFuture then "Unconfirmed" else "Outdated") ]
         , td [] [ text fa.comments ]
         , td [] [ text <| SM.statusToStr fa.status ]
         ]
@@ -372,10 +385,10 @@ viewSweepFile label sweepsFile  =
   case sweepsFile of
   Nothing -> text ""
   Just file ->
-    a [ href file.url ] [ text <| "Download " ++ label ++ " pdf: " ++ file.name ]
+    a [ href file.url, class "ml2" ] [ text <| "Download " ++ label ++ " pdf: " ++ file.name ]
 
-viewSweeps : Bool -> Time.Zone -> RemoteData.WebData SM.Sweeps -> Html Msg
-viewSweeps showUnconfirmed zone sweeps =
+viewSweeps : Bool -> Bool -> Time.Zone -> RemoteData.WebData SM.Sweeps -> Html Msg
+viewSweeps showUnconfirmed isFuture zone sweeps =
   case sweeps of
       RemoteData.NotAsked ->
         div [ class "tc" ] [ text "Loading" ]
@@ -394,17 +407,17 @@ viewSweeps showUnconfirmed zone sweeps =
               div [ ] 
                 [ p [] 
                   [ viewSweepFile "Confirmed Sweeps" sweep.currentFile
-                  , viewSweepFile "Pending Sweeps" sweep.futureFile
+                  , viewSweepFile (if isFuture then "Pending Sweeps" else "Outdated Sweeps" ) sweep.futureFile
                   , a [ class "mh2",  href csvUrl ] [ text <| "Download csv" ]
                   ]
-                , viewFilter showUnconfirmed
+                , viewFilter showUnconfirmed isFuture
                 , table [] [
                   thead [] [
                     tr []
                       [ th [ class "w5" ] [ text "Address" ]
                       , th [] [ text "Division" ]
                       , th [] [ text "Location" ]
-                      , th [] [ text "Action Type" ]
+                      , th [ class "w3" ] [ text "Action Type" ]
                       , th [] [ text "Comments" ]
                       , th [] [ text "Status" ]
                       ]
@@ -419,7 +432,7 @@ viewSweeps showUnconfirmed zone sweeps =
                         SM.Future _ -> False
                         _ -> True
                     )
-                    |> List.map viewActivity)
+                    |> List.map (viewActivity isFuture))
                   ]
                 ]
       RemoteData.Failure error ->
@@ -443,16 +456,21 @@ errorToString err =
         Http.BadUrl url ->
             "Malformed url: " ++ url
 
-viewFilter showUnconfirmed =
+viewFilter showUnconfirmed isFuture =
   label [] 
-    [ text "Show Unconfirmed Sweeps"
+    [ text <| if isFuture then "Show Unconfirmed Sweeps" else "Show Outdated Sweeps"
     , input [ type_ "checkbox", checked showUnconfirmed, onCheck SetShowUnconfirmed, class "ml3" ] []
     ]
 
 view model =
+  let
+    selected = Time.posixToMillis model.time
+    today = Time.posixToMillis model.today
+    isFuture = selected > today
+  in
   div []
     [ viewDatePicker model
-    , viewSweeps model.showUnconfirmed model.zone model.sweeps
+    , viewSweeps model.showUnconfirmed isFuture model.zone model.sweeps
     ]
 
 subscriptions model = 
