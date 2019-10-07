@@ -10,16 +10,25 @@
 
     <link rel="stylesheet" href="https://unpkg.com/tachyons@4.10.0/css/tachyons.min.css"/>
     <link rel="stylesheet" href="/style.css">
-    
+
     <script type="text/javascript" src="/elm.js"></script>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css"
+      integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
+      crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.5.1/dist/leaflet.js"
+      integrity="sha512-GffPMF3RvMeYyc1LWMHtK8EbPv0iNZ8/oTtHPx9/cc2ILxQ+u905qIwdpULaqDkyBKgOaB57QTMg7ztg8Jm2Og=="
+      crossorigin="">
+    </script>
   </head>
   <body class="athelas ma3">
-    
+
     <main role="main">
       <div id="root">
       </div>
+      <div id="map"></div>
     </main>
-    
+
     <footer class="tc">
       <!-- View Source Button -->
       <a href="https://glitch.com/edit/#!/la-heid-confirmation-sheets">
@@ -33,11 +42,15 @@
       </p>
     </footer>
 
-    
+
 
     <script type="text/javascript">
-      var main = Elm.Main.init({ 
+      var app = Elm.Main.init({
         node: document.querySelector('#root')
+      });
+
+      app.ports.plotSweeps.subscribe((data) => {
+        console.log(data)
       });
     </script>
   </body>

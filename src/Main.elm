@@ -1,4 +1,4 @@
-module Main exposing (main)
+port module Main exposing (main, plotSweeps)
 
 import Browser
 import Html exposing (..)
@@ -10,11 +10,12 @@ import Http
 import RemoteData
 import Time exposing (Zone, Posix, Month(..), Weekday(..))
 import Json.Decode as Decode
+import Json.Encode as Encode
 
 import SweepModels as SM
 import DayModels as DM
 
-type alias Model = 
+type alias Model =
   { zone: Zone
   , time: Posix
   , today: Posix
@@ -45,7 +46,7 @@ getDays =
     { url = "/api/days"
     , expect = Http.expectJson (RemoteData.fromResult >> DaysResponse) (Decode.list DM.dayDecoder)
     }
-    
+
 getSweeps : Time.Posix -> Time.Zone -> Cmd Msg
 getSweeps time zone =
   Http.get
@@ -55,7 +56,7 @@ getSweeps time zone =
 
 init : () -> (Model, Cmd Msg)
 init _ =
-  ( { zone = Time.utc 
+  ( { zone = Time.utc
     , time = (Time.millisToPosix 0)
     , today = (Time.millisToPosix 0)
     , days = RemoteData.NotAsked
@@ -65,7 +66,7 @@ init _ =
     , sweeps = RemoteData.NotAsked
     , showUnconfirmed = True
     }
-  , Cmd.batch 
+  , Cmd.batch
     [ Task.perform SetTimeZone Time.here
     , getDays
     ]
@@ -80,7 +81,7 @@ millisecondsInADay = 86400000
 
 getSweepsForDay zone day =
   let
-      newTime = 
+      newTime =
         day
         |> Maybe.andThen (\d ->
           d
@@ -142,11 +143,15 @@ update msg model =
         _ -> False
     in
     ( { model | sweeps = response, time = Maybe.withDefault model.time newTime, showUnconfirmed = not hasCurrent }
-    , Cmd.none
+    , case response of
+        RemoteData.Success sweeps ->
+          plotSweeps (SM.sweepsEncoder sweeps)
+
+        _ -> Cmd.none
     )
   ShowDayPicker ->
     let
-      currentlySelectedDay = 
+      currentlySelectedDay =
         case model.sweeps of
         RemoteData.Success sweep ->
           case sweep.activities of
@@ -171,7 +176,7 @@ update msg model =
     )
   ChangeDay ->
     let
-      (newTime, sweepsCmd) = 
+      (newTime, sweepsCmd) =
         getSweepsForDay model.zone model.selectedDay
     in
     ( { model | showDayPicker = False, selectedDay = Nothing, time = Maybe.withDefault model.time newTime }
@@ -284,8 +289,8 @@ viewHeaderTime time zone =
       Time.toDay zone time
       |> String.fromInt
       |> String.padLeft 2 '0'
-    month = 
-      Time.toMonth zone time 
+    month =
+      Time.toMonth zone time
       |> toTextMonth
     year = Time.toYear zone time
       |> String.fromInt
@@ -296,7 +301,7 @@ viewActivity : Bool -> SM.Activity -> Html Msg
 viewActivity isFuture activity =
   case activity of
     SM.Maintenance ma ->
-      tr [] 
+      tr []
         [ td [] [ text ma.address ]
         , td [] [ text <| Maybe.withDefault "" <| Maybe.map SM.divisionToStr ma.division ]
         , td [] [ text <| Maybe.withDefault "" <| Maybe.map SM.locationToStr ma.location ]
@@ -306,7 +311,7 @@ viewActivity isFuture activity =
         ]
     SM.Division da ->
       tr []
-        [ td [] 
+        [ td []
             [ div [] [ text <| da.address ]
             , div [] [ text "with cross streets:" ]
             , div [] [ text da.crossStreetOne ]
@@ -320,8 +325,8 @@ viewActivity isFuture activity =
         ]
     SM.Future fa ->
       tr [ ]
-        [ td [] 
-            [ div [] 
+        [ td []
+            [ div []
               [ div [ class "unconfirmed" ] [ text (if isFuture then "Unconfirmed" else "Outdated") ]
               , text <| fa.address
               ]
@@ -341,9 +346,9 @@ viewDayButton label msg =
 viewDatePicker model =
     case model.showDayPicker of
     False ->
-        h1 [ class "flex justify-center flex-column" ] 
+        h1 [ class "flex justify-center flex-column" ]
           [ div [ class "tc" ] [ text <| "Sweeps for " ++ (viewHeaderTime model.time model.zone) ]
-          , div [ class "flex justify-center" ] 
+          , div [ class "flex justify-center" ]
             [ viewDayButton "⇐ Previous Day" GoToPreviousDay
             , (case model.days of
               RemoteData.Success _ -> button [ onClick ShowDayPicker, class "btn" ] [ text "📅 Change Date" ]
@@ -353,17 +358,17 @@ viewDatePicker model =
             ]
           ]
     True ->
-      h1 [ class "flex justify-center flex-column" ] 
-        [ label [ class "tc" ] 
+      h1 [ class "flex justify-center flex-column" ]
+        [ label [ class "tc" ]
           [ div [ ] [ text "Pick a day with sweeps:" ]
-          , select [ onInput SelectDay ] 
+          , select [ onInput SelectDay ]
               (case model.days of
                 RemoteData.Success days ->
                   days
                   |> List.sortBy (\d -> Time.posixToMillis d.id )
                   |> List.map (\d ->
                     let
-                      idString = 
+                      idString =
                         d.id
                         |> posixToString
                       isSelected =
@@ -404,8 +409,8 @@ viewSweeps showUnconfirmed isFuture zone sweeps =
                 csvUrl =
                   "/api/csv/" ++ dateString
               in
-              div [ ] 
-                [ p [] 
+              div [ ]
+                [ p []
                   [ viewSweepFile "Confirmed Sweeps" sweep.currentFile
                   , viewSweepFile (if isFuture then "Pending Sweeps" else "Outdated Sweeps" ) sweep.futureFile
                   , a [ class "mh2",  href csvUrl ] [ text <| "Download csv" ]
@@ -457,7 +462,7 @@ errorToString err =
             "Malformed url: " ++ url
 
 viewFilter showUnconfirmed isFuture =
-  label [] 
+  label []
     [ text <| if isFuture then "Show Unconfirmed Sweeps" else "Show Outdated Sweeps"
     , input [ type_ "checkbox", checked showUnconfirmed, onCheck SetShowUnconfirmed, class "ml3" ] []
     ]
@@ -473,11 +478,13 @@ view model =
     , viewSweeps model.showUnconfirmed isFuture model.zone model.sweeps
     ]
 
-subscriptions model = 
+subscriptions model =
   Sub.none
 
+port plotSweeps : Encode.Value -> Cmd msg
+
 main =
-    Browser.element 
+    Browser.element
       { init = init
       , view = view
       , update = update

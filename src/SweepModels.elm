@@ -4,6 +4,7 @@ import Time
 import Json.Decode as Decode exposing (Decoder, int, string, bool)
 import Json.Decode.Extra as DecodeExtra
 import Json.Decode.Pipeline exposing (required, optional, hardcoded)
+import Json.Encode as Encode
 
 type SubLocation
   = Street
@@ -13,7 +14,7 @@ type SubLocation
 
 subLocationFromString string =
   case string of
-  "street" -> 
+  "street" ->
     Street
   "underpass" ->
     Underpass
@@ -21,7 +22,7 @@ subLocationFromString string =
     Alley
   somethingElse ->
     OtherSubLocation somethingElse
-      
+
 type LocationType
   = WithSidewalk SubLocation
   | NoSidewalk SubLocation
@@ -33,7 +34,7 @@ locationTypeDecoder =
   Decode.string
   |> Decode.andThen (\str ->
     let
-      segments = 
+      segments =
         String.split "/" str
         |> List.filter (\s -> s /= "")
         |> List.map String.toLower
@@ -84,7 +85,7 @@ type Division
   | WestLosAngeles
   | NorthHollywood
   | OtherDivision String
-  
+
 divisionToStr division =
   case division of
   Newton -> "Newton"
@@ -110,7 +111,7 @@ divisionDecoder =
       lower = String.toLower str
     in
     case lower of
-    "newton" -> 
+    "newton" ->
       Decode.succeed Newton
     "west valley" ->
       Decode.succeed WestValley
@@ -146,10 +147,10 @@ type Status
   | Authorized
   | MissingAllSignatures
   | OtherStatus String
-  
+
 statusToStr status =
   case status of
-  Approved -> 
+  Approved ->
     "Approved"
   MissingLAHSASignature ->
     "Missing LAHSA Signature"
@@ -167,7 +168,7 @@ statusDecoder =
       lower = String.toLower str
     in
     case lower of
-    "approved" -> 
+    "approved" ->
       Decode.succeed Approved
     "missing lahsa signature" ->
       Decode.succeed MissingLAHSASignature
@@ -175,7 +176,7 @@ statusDecoder =
       Decode.succeed Authorized
     "missing all 3 signatures" ->
       Decode.succeed MissingAllSignatures
-    s -> 
+    s ->
       Decode.succeed <| OtherStatus s
   )
 
@@ -270,12 +271,12 @@ maintenanceActivityDecoder =
   |> required "comments" string
   |> optional "division" (Decode.map Just divisionDecoder) Nothing
   |> required "status" maintenanceStatusDecoder
-  
+
 type Activity
   = Maintenance MaintenanceActivity
   | Division DivisionActivity
   | Future FutureActivity
-  
+
 activityDecoder : Decoder Activity
 activityDecoder =
   Decode.oneOf
@@ -309,3 +310,22 @@ sweepsDecoder =
   |> required "activities" (Decode.list activityDecoder)
   |> optional "currentFile" (Decode.map Just sweepsFileDecoder) Nothing
   |> optional "futureFile" (Decode.map Just sweepsFileDecoder) Nothing
+
+activityEncoder : Activity -> Encode.Value
+activityEncoder activity =
+  case activity of
+    Division act -> Encode.string act.address
+    Future act -> Encode.string act.address
+    Maintenance act -> Encode.string act.address
+
+isDivision : Activity -> Bool
+isDivision activity =
+  case activity of
+    Division _ -> True
+    _ -> False
+
+sweepsEncoder : Sweeps -> Encode.Value
+sweepsEncoder sweeps =
+  sweeps.activities
+  |> List.filter isDivision
+  |> Encode.list activityEncoder

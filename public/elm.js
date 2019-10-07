@@ -7660,9 +7660,46 @@ var author$project$Main$getSweepsForDay = F2(
 		return _Utils_Tuple2(newTime, sweepsCmd);
 	});
 var author$project$Main$millisecondsInADay = 86400000;
+var author$project$Main$plotSweeps = _Platform_outgoingPort('plotSweeps', elm$core$Basics$identity);
 var author$project$Main$posixToString = function (posix) {
 	return elm$core$String$fromInt(
 		elm$time$Time$posixToMillis(posix));
+};
+var elm$json$Json$Encode$string = _Json_wrap;
+var author$project$SweepModels$activityEncoder = function (activity) {
+	switch (activity.$) {
+		case 'Division':
+			var act = activity.a;
+			return elm$json$Json$Encode$string(act.address);
+		case 'Future':
+			var act = activity.a;
+			return elm$json$Json$Encode$string(act.address);
+		default:
+			var act = activity.a;
+			return elm$json$Json$Encode$string(act.address);
+	}
+};
+var author$project$SweepModels$isDivision = function (activity) {
+	if (activity.$ === 'Division') {
+		return true;
+	} else {
+		return false;
+	}
+};
+var elm$json$Json$Encode$list = F2(
+	function (func, entries) {
+		return _Json_wrap(
+			A3(
+				elm$core$List$foldl,
+				_Json_addEntry(func),
+				_Json_emptyArray(_Utils_Tuple0),
+				entries));
+	});
+var author$project$SweepModels$sweepsEncoder = function (sweeps) {
+	return A2(
+		elm$json$Json$Encode$list,
+		author$project$SweepModels$activityEncoder,
+		A2(elm$core$List$filter, author$project$SweepModels$isDivision, sweeps.activities));
 };
 var elm$core$List$any = F2(
 	function (isOkay, list) {
@@ -7770,14 +7807,22 @@ var author$project$Main$update = F2(
 							sweeps: response,
 							time: A2(elm$core$Maybe$withDefault, model.time, newTime)
 						}),
-					elm$core$Platform$Cmd$none);
+					function () {
+						if (response.$ === 'Success') {
+							var sweeps = response.a;
+							return author$project$Main$plotSweeps(
+								author$project$SweepModels$sweepsEncoder(sweeps));
+						} else {
+							return elm$core$Platform$Cmd$none;
+						}
+					}());
 			case 'ShowDayPicker':
 				var currentlySelectedDay = function () {
-					var _n5 = model.sweeps;
-					if (_n5.$ === 'Success') {
-						var sweep = _n5.a;
-						var _n6 = sweep.activities;
-						if (!_n6.b) {
+					var _n6 = model.sweeps;
+					if (_n6.$ === 'Success') {
+						var sweep = _n6.a;
+						var _n7 = sweep.activities;
+						if (!_n7.b) {
 							return model.firstDay;
 						} else {
 							return elm$core$Maybe$Just(
@@ -7808,9 +7853,9 @@ var author$project$Main$update = F2(
 						{selectedDay: elm$core$Maybe$Nothing, showDayPicker: false}),
 					elm$core$Platform$Cmd$none);
 			case 'ChangeDay':
-				var _n7 = A2(author$project$Main$getSweepsForDay, model.zone, model.selectedDay);
-				var newTime = _n7.a;
-				var sweepsCmd = _n7.b;
+				var _n8 = A2(author$project$Main$getSweepsForDay, model.zone, model.selectedDay);
+				var newTime = _n8.a;
+				var sweepsCmd = _n8.b;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
@@ -7867,7 +7912,6 @@ var elm$virtual_dom$VirtualDom$toHandlerInt = function (handler) {
 var elm$html$Html$button = _VirtualDom_node('button');
 var elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var elm$html$Html$text = elm$virtual_dom$VirtualDom$text;
-var elm$json$Json$Encode$string = _Json_wrap;
 var elm$html$Html$Attributes$stringProperty = F2(
 	function (key, string) {
 		return A2(

@@ -10,6 +10,7 @@
   "dependencies": {
     "elm": "0.19.0-no-deps",
     "express": "^4.17.1",
+    "js-xlsx": "^0.8.22",
     "moment": "^2.24.0",
     "moment-timezone": "^0.5.26",
     "pdfjs-dist": "^2.2.228"
@@ -27,7 +28,7 @@
     "express"
   ],
   "devDependencies": {
-    "eslint": "^6.4.0",
+    "eslint": "^6.5.1",
     "eslint-config-airbnb-base": "^14.0.0",
     "eslint-plugin-import": "^2.18.2",
     "webpack": "^4.40.2"
