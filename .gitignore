@@ -1,3 +1,5 @@
 elm-stuff/*
 .elm/*
 node_modules
+public/elm.js
+public/main.js
