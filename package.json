@@ -1,7 +1,7 @@
 {
-  "name": "hello-express",
-  "version": "0.0.1",
-  "description": "A simple Node app built on Express, instantly up and running.",
+  "name": "la_he-id_sweeps_information",
+  "version": "1.0.0",
+  "description": "",
   "main": "server.js",
   "scripts": {
     "makeElm": "elm make src/Main.elm --output public/elm.js",
@@ -21,10 +21,10 @@
     "xlsx": "^0.15.1"
   },
   "engines": {
-    "node": "10"
+    "node": ">=10"
   },
   "repository": {
-    "url": "https://glitch.com/edit/#!/hello-express"
+    "url": ""
   },
   "license": "MIT",
   "keywords": [
