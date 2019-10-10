@@ -21,7 +21,7 @@
     "xlsx": "^0.15.1"
   },
   "engines": {
-    "node": "12.x"
+    "node": "10"
   },
   "repository": {
     "url": "https://glitch.com/edit/#!/hello-express"
