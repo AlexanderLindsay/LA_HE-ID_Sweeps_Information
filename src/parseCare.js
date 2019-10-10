@@ -1,5 +1,6 @@
 import XLSX from 'xlsx'
 
+// CORS error
 const url = 'https://archive.org/download/lasanitationencampmentsweepconfirmationsheets/CARE%20Program%20Confirmation%20Sheet%2010.7.xlsx'
 
 const workbook = fetch(url)
@@ -12,3 +13,4 @@ const workbook = fetch(url)
     return XLSX.read(data, { type: 'array' })
   })
   .then(console.log)
+  .catch(console.error)

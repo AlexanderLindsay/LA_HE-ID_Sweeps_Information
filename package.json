@@ -5,12 +5,15 @@
   "main": "server.js",
   "scripts": {
     "makeElm": "elm make src/Main.elm --output public/elm.js",
-    "bundleJS" : "webpack -d src/main.js -o public/main.js",
+    "bundleJS": "webpack -c webpack.config.js",
     "start": "pnpm run makeElm && pnpm run bundleJS && node server.js"
   },
   "dependencies": {
+    "dotenv-webpack": "^1.7.0",
     "elm": "0.19.0-no-deps",
     "express": "^4.17.1",
+    "leaflet": "^1.5.1",
+    "leaflet-control-geocoder": "^1.10.0",
     "moment": "^2.24.0",
     "moment-timezone": "^0.5.26",
     "pdfjs-dist": "^2.2.228",
