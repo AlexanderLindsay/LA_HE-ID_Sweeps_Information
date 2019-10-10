@@ -475,6 +475,7 @@ view model =
   in
   div []
     [ viewDatePicker model
+    , div [ id "map" ] []
     , viewSweeps model.showUnconfirmed isFuture model.zone model.sweeps
     ]
 
