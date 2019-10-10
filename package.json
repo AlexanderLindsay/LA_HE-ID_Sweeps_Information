@@ -6,8 +6,8 @@
   "scripts": {
     "makeElm": "elm make src/Main.elm --output public/elm.js",
     "bundleJS": "webpack -c webpack.config.js",
-    "start": "pnpm run makeElm && pnpm run bundleJS -- -d && node server.js",
-    "build": "pnpm run makeElm && pnpm run bundleJS -- -p"
+    "start": "pnpm run makeElm && pnpm run bundleJS -- -p && node server.js",
+    "dev": "pnpm run makeElm && pnpm run bundleJS -- -d && node server.js"
   },
   "dependencies": {
     "dotenv-webpack": "^1.7.0",
