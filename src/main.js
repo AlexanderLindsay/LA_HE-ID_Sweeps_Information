@@ -1,6 +1,7 @@
 // import './parseCare.js'
 import L from 'leaflet'
 import { BingProvider } from 'leaflet-geosearch'
+import { Elm } from './Main.elm'
 
 const log = (...args) => {
   if (process.env.NODE === 'development') {

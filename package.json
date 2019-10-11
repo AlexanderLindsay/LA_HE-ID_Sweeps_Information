@@ -6,8 +6,8 @@
   "scripts": {
     "makeElm": "elm make src/Main.elm --output public/elm.js",
     "bundleJS": "webpack -c webpack.config.js",
-    "start": "pnpm run makeElm && pnpm run bundleJS -- -p && node server.js",
-    "dev": "pnpm run makeElm && pnpm run bundleJS -- -d && node server.js"
+    "start": "pnpm run bundleJS -- -p && node server.js",
+    "dev": "pnpm run bundleJS -- -d && node server.js"
   },
   "dependencies": {
     "dotenv-webpack": "^1.7.0",
@@ -36,6 +36,7 @@
     "@babel/core": "^7.6.2",
     "@babel/preset-env": "^7.6.2",
     "babel-loader": "^8.0.6",
+    "elm-webpack-loader": "^6.0.0",
     "webpack": "^4.41.0",
     "webpack-cli": "^3.3.9"
   }
