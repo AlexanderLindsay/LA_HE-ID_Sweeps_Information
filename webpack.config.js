@@ -15,7 +15,7 @@ module.exports = {
         use: {
           loader: 'elm-webpack-loader',
           options: {
-            pathToElm: 'node_modules/.bin/elm',
+            pathToElm: 'node_modules/elm/bin/elm',
           },
         },
       },
