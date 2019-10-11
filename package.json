@@ -4,7 +4,6 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "makeElm": "elm make src/Main.elm --output public/elm.js",
     "bundleJS": "webpack -c webpack.config.js",
     "start": "pnpm run bundleJS -- -p && node server.js",
     "dev": "pnpm run bundleJS -- -d && node server.js"

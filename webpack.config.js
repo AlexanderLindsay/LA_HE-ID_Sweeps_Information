@@ -8,16 +8,18 @@ module.exports = {
     path: path.resolve(__dirname, 'public'),
   },
   module: {
-    rules: [{
-      test: /\.elm$/,
-      exclude: [/elm-stuff/, /node_modules/],
-      use: {
-        loader: 'elm-webpack-loader',
-        options: {},
+    rules: [
+      {
+        test: /\.elm$/,
+        exclude: [/elm-stuff/, /node_modules/],
+        use: {
+          loader: 'elm-webpack-loader',
+          options: {
+            pathToElm: 'node_modules/.bin/elm',
+          },
+        },
       },
-    }],
+    ],
   },
-  plugins: [
-    new Dotenv(),
-  ],
+  plugins: [new Dotenv()],
 }
