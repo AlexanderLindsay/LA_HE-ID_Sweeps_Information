@@ -1,32 +1,42 @@
 {
-  "//1": "describes your app and its dependencies",
-  "//2": "https://docs.npmjs.com/files/package.json",
-  "//3": "updating this file will download and update your packages",
-  "name": "hello-express",
-  "version": "0.0.1",
-  "description": "A simple Node app built on Express, instantly up and running.",
+  "name": "la_he-id_sweeps_information",
+  "version": "1.0.0",
+  "description": "",
   "main": "server.js",
   "scripts": {
-    "prestart": "elm make src/Main.elm --output public/elm.js",
-    "start": "pnpm run prestart && node server.js"
+    "bundleJS": "webpack -c webpack.config.js",
+    "start": "pnpm run bundleJS -- -p && node server.js",
+    "dev": "pnpm run bundleJS -- -d && node server.js"
   },
   "dependencies": {
-    "express": "^4.16.4",
+    "dotenv-webpack": "^1.7.0",
     "elm": "0.19.0-no-deps",
-    "pdfjs-dist": "^2.2.228",
+    "express": "^4.17.1",
+    "leaflet": "^1.5.1",
+    "leaflet-geosearch": "^2.7.0",
     "moment": "^2.24.0",
-    "moment-timezone": "^0.5.26"
+    "moment-timezone": "^0.5.26",
+    "pdfjs-dist": "^2.2.228",
+    "xlsx": "^0.15.1"
   },
   "engines": {
-    "node": "8.x"
+    "node": ">=10"
   },
   "repository": {
-    "url": "https://glitch.com/edit/#!/hello-express"
+    "url": ""
   },
   "license": "MIT",
   "keywords": [
     "node",
     "glitch",
     "express"
-  ]
+  ],
+  "devDependencies": {
+    "@babel/core": "^7.6.2",
+    "@babel/preset-env": "^7.6.2",
+    "babel-loader": "^8.0.6",
+    "elm-webpack-loader": "^6.0.0",
+    "webpack": "^4.41.0",
+    "webpack-cli": "^3.3.9"
+  }
 }

@@ -74,3 +74,7 @@ h1 button {
   font-weight: bold;
   color: #FF4136;
 }
+
+#map {
+  height: 500px;
+}
