@@ -17,7 +17,7 @@
     "moment": "^2.24.0",
     "moment-timezone": "^0.5.26",
     "pdfjs-dist": "^2.2.228",
-    "xlsx": "^0.15.1"
+    "xlsx": "^0.18.5"
   },
   "engines": {
     "node": ">=10"
